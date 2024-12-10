@@ -1,0 +1,6 @@
+.hero-container{
+     background-color: rgb(27, 26, 26);
+     height: 500px;
+     width: 100%;
+     border: 2px solid black;
+}
