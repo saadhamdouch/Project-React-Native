@@ -5,7 +5,7 @@ import './hero.css'
 export default function Hero() {
   return (
     <View className='hero-container'>
-          
+          <Text>Heeyyy</Text>
     </View>
   )
 }
