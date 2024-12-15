@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text } from 'react-native'
-import './hero.css'
+import './hero.module.css'
 
 export default function Hero() {
   return (

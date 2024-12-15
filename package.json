@@ -7,6 +7,7 @@
     "react-native-safe-area-context": "^5.0.0",
     "react-native-screens": "^4.3.0",
     "react-native-vector-icons": "^10.2.0",
-    "react-navigation": "^5.0.0"
+    "react-navigation": "^5.0.0",
+    "styled-components": "^6.1.13"
   }
 }
