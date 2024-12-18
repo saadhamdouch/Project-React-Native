@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  TouchableOpacity,
+  Image
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -13,8 +20,7 @@ export default function Hero() {
     >
       {/* Slogan */}
       <View style={styles.slogan}>
-        <Text style={styles.Logo}>MoMeet</Text>
-        <Text style={styles.description}>Connect, Chat and Enjoy video call</Text>
+        <Image style={styles.Logo} source={require("../../assets/images/Logo_description.png")}/>
       </View>
 
       {/* Image principale */}
@@ -26,27 +32,35 @@ export default function Hero() {
       {/* Liste des fonctionnalités */}
       <View style={styles.featuresContainer}>
         <Text style={styles.featureItem}>
-          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> Simple Meetings, Lasting Moments
+          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> Simple
+          Meetings, Lasting Moments
         </Text>
         <Text style={styles.featureItem}>
-          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> Where Connections Happen
+          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> Where
+          Connections Happen
         </Text>
         <Text style={styles.featureItem}>
-          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> Create Moments, Connect People
+          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> Create
+          Moments, Connect People
         </Text>
         <Text style={styles.featureItem}>
-          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> Bringing People Together
+          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" />{" "}
+          Bringing People Together
         </Text>
         <Text style={styles.featureItem}>
-          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> video call
+          <Ionicons name="checkmark-circle" size={20} color="#db4cdb" /> video
+          call
         </Text>
       </View>
 
       {/* Bouton Start Now */}
       <TouchableOpacity style={styles.startButton}>
-        <Text style={styles.buttonText}
-        onPress={() => navigation.navigate("Tabs")}
-        >✨ Start Now</Text>
+        <Text
+          style={styles.buttonText}
+          onPress={() => navigation.navigate("Tabs")}
+        >
+          ✨ Start Now
+        </Text>
       </TouchableOpacity>
     </ImageBackground>
   );
@@ -66,15 +80,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   Logo: {
-    fontWeight: "700",
-    fontSize: 30,
-    color: "#db4cdb",
-  },
-  description: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "white",
-    marginTop: 5,
+    width: "60%",
+    height: "100",
+    position: "absolute",
+    zIndex: 10
   },
   imageHero: {
     width: "100%",
@@ -87,7 +96,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     justifyContent: "flex-start",
-    bottom: 0,
+    bottom: -20,
     width: "100%",
     padding: 10,
     height: "40%",

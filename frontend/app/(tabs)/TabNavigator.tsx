@@ -20,6 +20,13 @@ export default function TabNavigator() {
   return (
       <Tab.Navigator
         screenOptions={({ route }) => ({
+          headerStyle: {
+            backgroundColor: '#6A0DAD', // Couleur du header (violet dans ton cas)
+          },
+          headerTintColor: '#fff', // Couleur du texte du header
+          tabBarStyle: {
+            backgroundColor: '#E2E2E2', // Couleur de la tabulation
+          },
           tabBarIcon: ({
             focused,
             color,
@@ -39,7 +46,7 @@ export default function TabNavigator() {
             }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: "tomato",
+          tabBarActiveTintColor: "purple",
           tabBarInactiveTintColor: "gray",
         })}
       >
