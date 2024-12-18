@@ -1,12 +1,8 @@
 import React from "react";
-import { ThemeProvider } from "styled-components";
-import Tabs from "./tabs";
-import { theme } from "../styles/theme";
+import AppNavigator from "./AppNavigator";
 
 export default function Layout() {
   return (
-    <ThemeProvider theme={theme}>
-      <Tabs />
-    </ThemeProvider>
+        <AppNavigator />
   );
 }

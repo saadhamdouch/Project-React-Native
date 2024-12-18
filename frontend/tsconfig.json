@@ -1,8 +1,6 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "strict": true,
     "paths": {
       "@/*": [
@@ -18,4 +16,3 @@
     ".expo/types/**/*.ts"
 , "app/(tabs)/index.jsx"  ]
 }
-
