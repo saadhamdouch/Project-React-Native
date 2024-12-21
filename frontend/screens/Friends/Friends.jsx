@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-native";
 
-const Home = () => {
+const Friends = ({ navigation }) => {
   const Friends = [
     {
       id: 1,
@@ -18,7 +18,7 @@ const Home = () => {
       lastMessage: "Salut, comment ça va ?",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
     {
       id: 2,
@@ -28,7 +28,7 @@ const Home = () => {
       lastMessage: "Je suis en route, à tout de suite !",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
     {
       id: 3,
@@ -38,7 +38,7 @@ const Home = () => {
       lastMessage: "Tu viens ce soir ?",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
     {
       id: 4,
@@ -48,7 +48,7 @@ const Home = () => {
       lastMessage: "N'oublie pas de m'appeler demain.",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
     {
       id: 5,
@@ -58,7 +58,7 @@ const Home = () => {
       lastMessage: "Merci pour hier, c'était super !",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
     {
       id: 6,
@@ -68,7 +68,7 @@ const Home = () => {
       lastMessage: "Je t'enverrai les infos bientôt.",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
     {
       id: 7,
@@ -78,7 +78,7 @@ const Home = () => {
       lastMessage: "Peux-tu m'envoyer l'adresse ?",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
     {
       id: 8,
@@ -88,7 +88,7 @@ const Home = () => {
       lastMessage: "Je suis occupé pour le moment, on en parle plus tard.",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
     {
       id: 9,
@@ -98,30 +98,42 @@ const Home = () => {
       lastMessage: "On se voit à 18h au café.",
       image:
         "https://img.freepik.com/photos-gratuite/scene-style-anime-gens-montrant-affection-exterieur-dans-rue_23-2151500144.jpg?t=st=1734486242~exp=1734489842~hmac=51b200deeca78e9e7d9398a106da6ecd9fe33481161cf8926657b2905b3f00d9&w=1060",
-      time : "21 -12 - 2024 | 12:30"
+      time: "21 -12 - 2024 | 12:30",
     },
   ];
-
   const Friend = ({ item }) => {
     return (
-      <TouchableOpacity style={styles.card}>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("Chat", {
+            friendId: item.id,
+            friendName: item.lastName,
+          })
+        }
+        style={styles.card}
+      >
         <Image source={{ uri: item.image }} style={styles.avatar} />
         <View>
           <View style={styles.name}>
-            <Text style={{fontWeight: "600"}}>{item.firstName}</Text>
-            <Text style={{fontWeight: "600"}}>{item.lastName}</Text>
+            <Text style={{ fontWeight: "600" }}>{item.firstName}</Text>
+            <Text style={{ fontWeight: "600" }}>{item.lastName}</Text>
           </View>
-          <View style={{flexDirection: "row"}}>
-            <Text style={{fontWeight: "600"}}>Last Message : {item.lastMessage.slice(0,25)}</Text>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ fontWeight: "600" }}>
+              Last Message : {item.lastMessage.slice(0, 25)}
+            </Text>
             {item.lastMessage.length > 25 ? <Text> ... </Text> : null}
           </View>
           <View style={styles.date}>
-            <Text style={{color: "green", fontWeight: "500"}}>{item.time}</Text>
+            <Text style={{ color: "green", fontWeight: "500" }}>
+              {item.time}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
     );
   };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -134,7 +146,7 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Friends;
 
 const styles = StyleSheet.create({
   container: {
@@ -154,8 +166,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
     width: "95%",
-    borderWith : 3,
-    borderColor: "black"
+    borderWith: 3,
+    borderColor: "black",
   },
   avatar: {
     width: 50,
@@ -167,9 +179,9 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     gap: 6,
-    fontWeight: "600"
+    fontWeight: "600",
   },
   date: {
-    alignItems: "flex-start"
-  }
+    alignItems: "flex-start",
+  },
 });

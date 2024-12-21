@@ -4,6 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import Home from "../../screens/Home/Home";
 import Profile from "../../screens/Profile/Profile";
 import Friends from "../../screens/Friends/Friends";
+import FriendsStack from "./FriendsNavigator";
 import { Ionicons } from "@expo/vector-icons";
 import 'react-native-gesture-handler';
 
@@ -14,7 +15,7 @@ type TabParamList = {
   Friends: undefined;
 };
 
-const Tab = createBottomTabNavigator<TabParamList>();
+const Tab = createBottomTabNavigator<TabParamList>(); 
 
 export default function TabNavigator() {
   return (
@@ -52,7 +53,7 @@ export default function TabNavigator() {
       >
         <Tab.Screen name="Home" component={Home} />
         <Tab.Screen name="Profile" component={Profile} />
-        <Tab.Screen name="Friends" component={Friends} />
+        <Tab.Screen name="Friends" component={FriendsStack} />
       </Tab.Navigator>
   );
 }
