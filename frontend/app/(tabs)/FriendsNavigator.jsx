@@ -17,7 +17,7 @@ const FriendsNavigation = () => {
         name="Chat"
         component={ChatRoom}
         options={({ route }) => ({
-          title: `Chat avec ${route.params.friendName}`,
+          title: `Chat with ${route.params.friendName}`,
         })}
       />
     </FriendsStack.Navigator>
