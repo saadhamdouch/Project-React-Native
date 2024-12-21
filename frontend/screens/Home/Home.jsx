@@ -3,11 +3,15 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Image,
   TouchableOpacity,
   ImageBackground,
+  FlatList,
+  Dimensions,
 } from "react-native";
+
+// Obtenir les dimensions de l'écran pour ajuster la hauteur
+const { width, height } = Dimensions.get("window");
 
 export default function Home() {
   // Simuler des données pour les lives
@@ -35,75 +39,83 @@ export default function Home() {
     },
   ];
 
+  const renderItem = ({ item }) => (
+    <ImageBackground
+      source={require("../../assets/images/HERO_MOMEET.png")}
+      style={styles.liveContainer}
+    >
+      <TouchableOpacity style={styles.card}>
+        <Image source={{ uri: item.avatar }} style={styles.avatar} />
+        <View style={styles.info}>
+          <Text style={styles.title}>{item.name}</Text>
+          <Text style={styles.user}>{item.user}</Text>
+        </View>
+      </TouchableOpacity>
+    </ImageBackground>
+  );
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.descriptionContainer}>
-        <Text style={styles.description}>Engage in a discussion on the most compelling topics of your choice</Text>
-      </View>
-      {lives.map((live) => (
-        <ImageBackground source={require("../../assets/images/HERO_MOMEET.png")} key={live.id} style={styles.liveContainer}>
-          <TouchableOpacity style={styles.card}>
-            <Image source={{ uri: live.avatar }} style={styles.avatar} />
-            <View style={styles.info}>
-              <Text style={styles.title}>{live.name}</Text>
-              <Text style={styles.user}>{live.user}</Text>
-            </View>
-          </TouchableOpacity>
-        </ImageBackground>
-      ))}
-    </ScrollView>
+    <View style={styles.container}>
+      {/* <View style={styles.descriptionContainer}>
+        <Text style={styles.description}>
+          Engage in a discussion on the most compelling topics of your choice
+        </Text>
+      </View> */}
+      <FlatList
+        data={lives}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        snapToInterval={height - 100} // S'arrête automatiquement à chaque élément
+        decelerationRate="fast" // Réduit la vitesse pour un défilement fluide
+        showsVerticalScrollIndicator={false}
+        pagingEnabled // Ajout pour verrouiller le défilement
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  descriptionContainer:{
+  descriptionContainer: {
     width: "100%",
     borderWidth: 2,
-    height: 400,
+    height: 100,
     marginBottom: 20,
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#212121"
+    backgroundColor: "#212121",
   },
-  description:{
+  description: {
     width: "80%",
-    fontFamily: "",
     fontSize: 20,
     textAlign: "center",
     fontWeight: "600",
-    color: "white"
+    color: "white",
   },
   container: {
     flex: 1,
-    backgroundColor: "#F3E5F5", // Couleur de fond de la page Home
-    padding: 10,
-    marginBottom: 10,
-    margin: "auto",
-    width: "100%",
-
+    backgroundColor: "#F3E5F5",
   },
   liveContainer: {
-    width: "100%",
-    height: 700,
-    borderWidth: 2,
-    borderRadius: 30,
-    overflow: "hidden",
-    marginBottom: 10
+    width: width,
+    height: height - 100, // Ajuste la hauteur pour chaque élément
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
-    top: 10,
     flexDirection: "row",
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 15,
     margin: 10,
-    marginVertical: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
-    elevation: 3, // Ombre sur Android
+    elevation: 3,
+    position: "absolute",
+    top: 0,
+    width: "95%",
   },
   avatar: {
     width: 50,
@@ -117,7 +129,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#6A0DAD", // Couleur violette pour le titre
+    color: "#6A0DAD",
   },
   user: {
     fontSize: 14,
