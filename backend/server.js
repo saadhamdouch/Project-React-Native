@@ -5,6 +5,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const chatController = require('./Controllers/ChatController');
+const Client = require("./Models/Client");
 
 dotenv.config();
 
@@ -37,3 +38,5 @@ chatController(io);
        process.exit(1);
      }
    })();
+
+   

@@ -30,3 +30,5 @@ const find10By10Messages = async (req, res) => {
     res.status(404).json({ error: error.message });
   }
 };
+
+module.exports = { findMessages, find10By10Messages };
