@@ -21,7 +21,6 @@ const clientSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    default: "../../frontend/assets/images/profileImage.jpg",
   },
   friends: [
     {
