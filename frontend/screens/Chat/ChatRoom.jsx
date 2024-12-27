@@ -49,7 +49,7 @@ const ChatRoom = () => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-
+  const isSender = true;
   const MessageItem = ({ item, isSender }) => (
     <View
       style={[
@@ -67,8 +67,6 @@ const ChatRoom = () => {
       <FlatList
         data={mockApi.messages}
         renderItem={({ item }) => {
-          // Determine if the message is from the sender or receiver
-          const isSender = item.content.startsWith("Salut");
           return <MessageItem item={item} isSender={isSender} />;
         }}
         keyExtractor={(item, index) => index.toString()}

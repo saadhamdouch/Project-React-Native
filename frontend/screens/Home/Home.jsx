@@ -45,7 +45,7 @@ export default function Home() {
       style={styles.liveContainer}
     >
       <TouchableOpacity style={styles.card}>
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
+        <Image source={{ uri:item.avatar }} style={styles.avatar} />
         <View style={styles.info}>
           <Text style={styles.title}>{item.name}</Text>
           <Text style={styles.user}>{item.user}</Text>
@@ -64,7 +64,7 @@ export default function Home() {
       <FlatList
         data={lives}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         snapToInterval={height - 100} // S'arrête automatiquement à chaque élément
         decelerationRate="fast" // Réduit la vitesse pour un défilement fluide
         showsVerticalScrollIndicator={false}

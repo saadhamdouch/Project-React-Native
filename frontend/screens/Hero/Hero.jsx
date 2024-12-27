@@ -57,7 +57,7 @@ export default function Hero() {
       <TouchableOpacity style={styles.startButton}>
         <Text
           style={styles.buttonText}
-          onPress={() => navigation.navigate("Tabs")}
+          onPress={() => navigation.navigate("SignUp")}
         >
           ✨ Start Now
         </Text>

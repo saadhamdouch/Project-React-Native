@@ -1,129 +1,241 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, StyleSheet, Button, TouchableOpacity } from "react-native";
+import React from 'react';
+import { View, Text, Image, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function Profile() {
-  const [profileInfo, setProfileInfo] = useState({
-    firstName: "",
-    lastName: "",
-    adresse: "",
-    contact: "",
-    email: "",
-    password: "",
+// Mock data for demonstration
+const client = {
+  username: "JohnDoe",
+  email: "john@example.com",
+  avatar: "",
+  friends: [
+    {
+      _id: "1",
+      username: "Ami1",
+      avatar:
+        "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=1936&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+      _id: "2",
+      username: "Ami2",
+      avatar:
+        "https://images.unsplash.com/photo-1631947430066-48c30d57b943?q=80&w=1916&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+      _id: "3",
+      username: "Ami3",
+      avatar:
+        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+      _id: "4",
+      username: "Ami4",
+      avatar:
+        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+      _id: "5",
+      username: "Ami5",
+      avatar:
+        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+      _id: "6",
+      username: "Ami6",
+      avatar:
+        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+  ],
+  createdAt: new Date("2023-01-01"),
+  posts: [
+    { id: "1", imageUrl: "https://picsum.photos/200/300", description: "Beautiful sunset", height: 300 },
+    { id: "2", imageUrl: "https://picsum.photos/200/200", height: 200 },
+    { id: "3", imageUrl: "https://picsum.photos/200/400", description: "My new artwork", height: 400 },
+    { id: "4", imageUrl: "https://picsum.photos/200/250", height: 250 },
+    { id: "5", imageUrl: "https://picsum.photos/200/350", description: "City lights", height: 350 },
+    { id: "6", imageUrl: "https://picsum.photos/200/280", height: 280 },
+  ],
+};
+
+const FriendItem = ({ friend }) => (
+  <View style={styles.friendItem}>
+    <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
+    <Text style={styles.friendName}>{friend.username}</Text>
+  </View>
+);
+
+const PostItem = ({ item, width }) => (
+  <View style={[styles.postItem, { width }]}>
+    <Image 
+      source={{ uri: item.imageUrl }} 
+      style={[styles.postImage, { width, height: item.height }]} 
+    />
+    {item.description && (
+      <View style={styles.descriptionContainer}>
+        <Text style={styles.postDescription}>{item.description}</Text>
+      </View>
+    )}
+  </View>
+);
+
+const MasonryList = ({ posts, numColumns, containerWidth }) => {
+  const columnWidth = containerWidth / numColumns;
+
+  const columns = Array.from({ length: numColumns }, () => []);
+  posts.forEach((post, index) => {
+    columns[index % numColumns].push(post);
   });
 
-  const handleChange = (name, value) => {
-    setProfileInfo((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
+  return (
+    <View style={styles.masonryContainer}>
+      {columns.map((column, columnIndex) => (
+        <View key={columnIndex} style={[styles.masonryColumn, { width: columnWidth }]}>
+          {column.map((post) => (
+            <PostItem key={post.id} item={post} width={columnWidth} />
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+};
 
-  const handleSubmit = () => {
-    console.log("Données du formulaire:", profileInfo);
-    // Envoi des données ou autres actions
-  };
+export default function Profile() {
+  const screenWidth = Dimensions.get('window').width;
+  const numColumns = 2;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Mise à jour du profil</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Prénom"
-        value={profileInfo.firstName}
-        onChangeText={(text) => handleChange("firstName", text)}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Nom"
-        value={profileInfo.lastName}
-        onChangeText={(text) => handleChange("lastName", text)}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Adresse"
-        value={profileInfo.adresse}
-        onChangeText={(text) => handleChange("adresse", text)}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Contact"
-        value={profileInfo.contact}
-        onChangeText={(text) => handleChange("contact", text)}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={profileInfo.email}
-        onChangeText={(text) => handleChange("email", text)}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        value={profileInfo.password}
-        onChangeText={(text) => handleChange("password", text)}
-        secureTextEntry
-      />
-      
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Enregistrer</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Image source={client.avatar ? { uri: client.avatar } : require("../../assets/images/myPhoto.jpg")} style={styles.avatar} />
+          <Text style={styles.username}>{client.username}</Text>
+          <Text style={styles.email}>{client.email}</Text>
+        </View>
+        
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Account Info</Text>
+          <Text style={styles.infoText}>Member since: {client.createdAt.toDateString()}</Text>
+        </View>
+        
+        <View style={styles.friendsSection}>
+          <Text style={styles.sectionTitle}>Friends</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {client.friends.map((friend) => (
+              <FriendItem key={friend._id} friend={friend} />
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.postsSection}>
+          <Text style={styles.sectionTitle}>Posts</Text>
+          <MasonryList 
+            posts={client.posts} 
+            numColumns={numColumns} 
+            containerWidth={screenWidth - 40} // Accounting for padding
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f4f4f9", // Couleur d'arrière-plan claire
-    padding: 20,
+    backgroundColor: '#fff',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 10,
+    borderWidth: 3,
+    borderColor: '#4169E1',
+  },
+  username: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
   },
-  input: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#fff",
-    borderColor: "#ddd",
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingLeft: 15,
-    marginVertical: 10,
+  email: {
     fontSize: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3, // Pour l'ombre sur Android
+    color: '#666',
   },
-  button: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#4CAF50", // Vert agréable
-    justifyContent: "center",
-    alignItems: "center",
+  infoSection: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  friendsSection: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  postsSection: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#4169E1',
+  },
+  infoText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+  },
+  friendItem: {
+    alignItems: 'center',
+    marginRight: 15,
+    width: 80,
+  },
+  friendAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 5,
+  },
+  friendName: {
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'center',
+  },
+  masonryContainer: {
+    flexDirection: 'row',
+  },
+  masonryColumn: {
+    flexDirection: 'column',
+    marginHorizontal: 5,
+  },
+  postItem: {
+    marginBottom: 10,
     borderRadius: 10,
-    marginTop: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
   },
-  buttonText: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
+  postImage: {
+    resizeMode: 'cover',
+  },
+  descriptionContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 10,
+  },
+  postDescription: {
+    fontSize: 14,
+    color: '#fff',
   },
 });
