@@ -12,6 +12,8 @@ import * as api from "../../services/userService";
 import * as ImagePicker from "expo-image-picker";
 import { Alert } from "react-native";
 import { useNavigation } from "expo-router";
+import axios from "axios"; 
+
 export default function SignUp() {
   const [userInfo, setUserInfo] = useState({
     username: "",
@@ -31,9 +33,42 @@ export default function SignUp() {
 
   const navigation = useNavigation();
 
-  const handleSubmit = async () => {
-    console.log("Données du formulaire:", userInfo);
+  const uploadImageToCloudinary = async (uri) => {
+    const data = new FormData();
+    const filename = uri.split("/").pop(); // Récupérer le nom du fichier à partir du URI
+    const fileType = uri.split(".").pop(); // Récupérer le type du fichier (ex: jpg, png, etc.)
+
+    // Ajouter les informations de l'image à FormData
+    data.append("file", {
+      uri,
+      name: filename,
+      type: `image/${fileType}`,
+    });
+    data.append("upload_preset", "ml_default"); // Remplacez par votre upload_preset Cloudinary
+
     try {
+      // Envoie de l'image à Cloudinary
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/ddiqmvgxy/image/upload`, // Remplacez par votre cloud_name
+        data
+      );
+      return response.data.secure_url; // Retourner l'URL de l'image téléchargée
+    } catch (error) {
+      console.error("Erreur lors de l'upload de l'image sur Cloudinary", error);
+      Alert.alert("Erreur", "Une erreur est survenue lors de l'upload de l'image.");
+      return null;
+    }
+  };
+
+  const handleSubmit = async () => {
+
+    try {
+      if (userInfo.avatar) {
+        const avatarUrl = await uploadImageToCloudinary(userInfo.avatar);
+        if (avatarUrl) {
+          userInfo.avatar = avatarUrl; // Mettre à jour l'URL de l'avatar
+        }
+      }
       const response = await api.createUser(userInfo);
       if (response) {
         console.log(response.data);
