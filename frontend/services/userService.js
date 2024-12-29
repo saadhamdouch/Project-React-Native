@@ -3,12 +3,27 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const API_URL = "https://momeetbackend.cleverapps.io/api/clients";
 
 export const storeToken = async (jwt) => {
+  const expirationTime = 1000 * 60 * 60 * 24 * 5; // 5 jours
   try {
+    const expiryDate = new Date().getTime() + expirationTime ;
     await AsyncStorage.setItem("authToken", jwt);
+    await AsyncStorage.setItem('token_expiry', expiryDate.toString());
     console.log("Token stored successfully!");
   } catch (error) {
     console.error("Error storing token", error);
   }
+};
+
+const checkTokenExpiration = async () => {
+  const tokenExpiry = await AsyncStorage.getItem('token_expiry');
+  const currentTime = new Date().getTime();
+
+  if (tokenExpiry && currentTime >= parseInt(tokenExpiry)) {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('token_expiry');
+    return true;
+  }
+  return false;
 };
 
 export const getUserByToken = async () => {
@@ -55,6 +70,11 @@ export const createUser = async (user) => {
 };
 
 export const uploadImage = async (uri) => {
+  if (!uri) {
+    console.log("No image URI provided.");
+    return "";
+  }
+
   const data = new FormData();
   const filename = uri.split("/").pop();
   const fileType = uri.split(".").pop();
