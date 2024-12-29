@@ -7,85 +7,19 @@ import {
   Button,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import * as api from "../../services/userService";
 import * as ImagePicker from "expo-image-picker";
-import { Alert } from "react-native";
-import { useNavigation } from "expo-router";
-import axios from "axios"; 
+import { useNavigation } from "@react-navigation/native";
+import { Formik } from "formik";
+import * as Yup from "yup";
 
 export default function SignUp() {
-  const [userInfo, setUserInfo] = useState({
-    username: "",
-    adresse: "",
-    contact: "",
-    email: "",
-    password: "",
-    avatar: "",
-  });
-
-  const handleChange = (name, value) => {
-    setUserInfo((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
+  const [avatar, setAvatar] = useState("");
   const navigation = useNavigation();
 
-  const uploadImageToCloudinary = async (uri) => {
-    const data = new FormData();
-    const filename = uri.split("/").pop(); // Récupérer le nom du fichier à partir du URI
-    const fileType = uri.split(".").pop(); // Récupérer le type du fichier (ex: jpg, png, etc.)
-
-    // Ajouter les informations de l'image à FormData
-    data.append("file", {
-      uri,
-      name: filename,
-      type: `image/${fileType}`,
-    });
-    data.append("upload_preset", "ml_default"); // Remplacez par votre upload_preset Cloudinary
-
-    try {
-      // Envoie de l'image à Cloudinary
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/ddiqmvgxy/image/upload`, // Remplacez par votre cloud_name
-        data
-      );
-      return response.data.secure_url; // Retourner l'URL de l'image téléchargée
-    } catch (error) {
-      console.error("Erreur lors de l'upload de l'image sur Cloudinary", error);
-      Alert.alert("Erreur", "Une erreur est survenue lors de l'upload de l'image.");
-      return null;
-    }
-  };
-
-  const handleSubmit = async () => {
-
-    try {
-      if (userInfo.avatar) {
-        const avatarUrl = await uploadImageToCloudinary(userInfo.avatar);
-        if (avatarUrl) {
-          userInfo.avatar = avatarUrl; // Mettre à jour l'URL de l'avatar
-        }
-      }
-      const response = await api.createUser(userInfo);
-      if (response) {
-        console.log(response.data);
-        Alert.alert("Succès", "Utilisateur créé avec succès.");
-      } else {
-        Alert.alert(
-          "Erreur",
-          "Une erreur est survenue lors de la création de l'utilisateur."
-        );
-      }
-    } catch (error) {
-      console.error("Erreur lors de la création de l'utilisateur:", error);
-    }
-    // navigation.navigate("Profile", { user: userInfo });
-  };
-
-  const pickImage = async () => {
+  const pickImage = async (setFieldValue) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
@@ -104,69 +38,161 @@ export default function SignUp() {
       });
 
       if (!result.canceled) {
-        setUserInfo((prevState) => ({
-          ...prevState,
-          avatar: result.assets[0].uri,
-        }));
+        setAvatar(result.assets[0].uri);
+        setFieldValue("avatar", result.assets[0].uri);
       }
     } catch (error) {
       console.error("Erreur lors de la sélection de l'image:", error);
       Alert.alert("Erreur", "Une erreur est survenue lors de la sélection.");
     }
   };
+
+  const validationSchema = Yup.object().shape({
+    username: Yup.string().required("Le nom d'utilisateur est requis"),
+    adresse: Yup.string().required("L'adresse est requise"),
+    contact: Yup.string()
+      .required("Le contact est requis")
+      .matches(/^\d+$/, "Le contact doit être un numéro valide"),
+    email: Yup.string()
+      .email("Entrez une adresse email valide")
+      .required("L'email est requis"),
+    password: Yup.string()
+      .min(6, "Le mot de passe doit contenir au moins 6 caractères")
+      .required("Le mot de passe est requis"),
+    avatar: Yup.string(),
+  });
+
+  const handleSubmit = async (values) => {
+    try {
+      if (values.avatar) {
+        const avatarPath = await api.uploadImage(values.avatar);
+        if (avatarPath) {
+          values.avatar = avatarPath;
+        }
+      }
+
+      const response = await api.createUser(values);
+      if (response.success) {
+        Alert.alert("Succès", "Utilisateur créé avec succès.");
+        if (response.client) {
+          await api.storeToken(response.token);
+          navigation.navigate("Tabs");
+        }
+      } else {
+        Alert.alert(
+          "Erreur",
+          "Une erreur est survenue lors de la création de l'utilisateur."
+        );
+      }
+    } catch (error) {
+      console.error("Erreur lors de la création de l'utilisateur:", error);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Sign Up</Text>
-      <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
-        <Image
-          source={
-            userInfo.avatar
-              ? { uri: userInfo.avatar }
-              : require("../../assets/images/profileImage.jpg")
-          }
-          style={styles.avatar}
-        />
-      </TouchableOpacity>
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={userInfo.username}
-        onChangeText={(text) => handleChange("username", text)}
-      />
+    <Formik
+      initialValues={{
+        username: "",
+        adresse: "",
+        contact: "",
+        email: "",
+        password: "",
+        // avatar: "",
+      }}
+      validationSchema={validationSchema}
+      onSubmit={handleSubmit}
+    >
+      {({
+        handleChange,
+        handleBlur,
+        handleSubmit,
+        setFieldValue,
+        values,
+        errors,
+        touched,
+      }) => (
+        <View style={styles.container}>
+          <Text style={styles.header}>Sign Up</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Adresse"
-        value={userInfo.adresse}
-        onChangeText={(text) => handleChange("adresse", text)}
-      />
+          <TouchableOpacity
+            style={styles.avatarContainer}
+            onPress={() => pickImage(setFieldValue)}
+          >
+            <Image
+              source={
+                avatar
+                  ? { uri: avatar }
+                  : require("../../assets/images/profileImage.jpg")
+              }
+              style={styles.avatar}
+            />
+          </TouchableOpacity>
+          {errors.avatar && touched.avatar && (
+            <Text style={styles.error}>{errors.avatar}</Text>
+          )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Contact"
-        value={userInfo.contact}
-        onChangeText={(text) => handleChange("contact", text)}
-      />
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            value={values.username}
+            onChangeText={handleChange("username")}
+            onBlur={handleBlur("username")}
+          />
+          {errors.username && touched.username && (
+            <Text style={styles.error}>{errors.username}</Text>
+          )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={userInfo.email}
-        onChangeText={(text) => handleChange("email", text)}
-      />
+          <TextInput
+            style={styles.input}
+            placeholder="Adresse"
+            value={values.adresse}
+            onChangeText={handleChange("adresse")}
+            onBlur={handleBlur("adresse")}
+          />
+          {errors.adresse && touched.adresse && (
+            <Text style={styles.error}>{errors.adresse}</Text>
+          )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        value={userInfo.password}
-        onChangeText={(text) => handleChange("password", text)}
-        secureTextEntry
-      />
+          <TextInput
+            style={styles.input}
+            placeholder="Contact"
+            value={values.contact}
+            onChangeText={handleChange("contact")}
+            onBlur={handleBlur("contact")}
+          />
+          {errors.contact && touched.contact && (
+            <Text style={styles.error}>{errors.contact}</Text>
+          )}
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Enregistrer</Text>
-      </TouchableOpacity>
-    </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={values.email}
+            onChangeText={handleChange("email")}
+            onBlur={handleBlur("email")}
+          />
+          {errors.email && touched.email && (
+            <Text style={styles.error}>{errors.email}</Text>
+          )}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Mot de passe"
+            value={values.password}
+            onChangeText={handleChange("password")}
+            onBlur={handleBlur("password")}
+            secureTextEntry
+          />
+          {errors.password && touched.password && (
+            <Text style={styles.error}>{errors.password}</Text>
+          )}
+
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Enregistrer</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </Formik>
   );
 }
 
@@ -175,7 +201,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f4f4f9", // Couleur d'arrière-plan claire
+    backgroundColor: "#f4f4f9",
     padding: 20,
   },
   header: {
@@ -201,11 +227,6 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 60,
   },
-  avatarPlaceholder: {
-    color: "gray",
-    textAlign: "center",
-    fontSize: 14,
-  },
   input: {
     width: "100%",
     height: 50,
@@ -220,12 +241,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 3, // Pour l'ombre sur Android
+    elevation: 3,
   },
   button: {
     width: "100%",
     height: 50,
-    backgroundColor: "#4169E1", // Vert agréable
+    backgroundColor: "#4169E1",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
@@ -240,5 +261,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "white",
     fontWeight: "bold",
+  },
+  error: {
+    color: "red",
+    fontSize: 12,
+    marginBottom: 5,
+    alignSelf: "flex-start",
   },
 });
