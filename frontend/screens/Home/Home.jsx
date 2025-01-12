@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -9,12 +9,25 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import * as api from "../../services/userService";
 
 // Obtenir les dimensions de l'écran pour ajuster la hauteur
 const { width, height } = Dimensions.get("window");
 
 export default function Home() {
-  // Simuler des données pour les lives
+  const navigation = useNavigation();
+  const isConnexionExpired = async () => {
+      const isExpired = await api.checkTokenExpiration();
+      if (isExpired) {
+        console.log("Token expired");
+        navigation.navigate("Login");
+      }
+    };
+  useEffect(() => {
+    isConnexionExpired();
+  }, []);
+
   const lives = [
     {
       id: 1,

@@ -14,7 +14,23 @@ export const storeToken = async (jwt) => {
   }
 };
 
-const checkTokenExpiration = async () => {
+export const getToken = async () => {
+  try {
+    const token = await AsyncStorage.getItem("authToken");
+    if (token !== null) {
+      console.log("JWT retrieved:", token);
+      return token;
+    }
+    console.log("No token found");
+    return null;
+  }
+  catch (error) {
+    console.error("Error retrieving token", error);
+    return null;
+  }
+};
+
+export const checkTokenExpiration = async () => {
   const tokenExpiry = await AsyncStorage.getItem('token_expiry');
   const currentTime = new Date().getTime();
 
@@ -66,6 +82,22 @@ export const createUser = async (user) => {
   } catch (error) {
     console.error("Failed to create user:", error.message);
     throw error;
+  }
+};
+
+export const loginUser = async (userData) => {
+  try {
+    const response = await axios.post(`${API_URL}/login`, userData);
+    console.log(response.data);
+    if (response.data.ok) {
+      console.log("User logged in successfully:", response.ok);
+      return { ok: true, token: response.data.token };
+    } else {
+      return { ok: false, error: response.data.message };
+    }
+  } catch (error) {
+    console.error('Error during login:', error);
+    return { success: false, error: 'An error occurred during login' };
   }
 };
 
@@ -122,5 +154,16 @@ export const getUserById = async (userId) => {
   } catch (error) {
     console.error("Failed to fetch user:", error.message);
     throw error;
+  }
+};
+
+export const logout = async () => {
+  try {
+    await AsyncStorage.removeItem("authToken");
+    console.log("User logged out successfully!");
+    return true;
+  } catch (error) {
+    console.error("Error logging out:", error);
+    return false;
   }
 };

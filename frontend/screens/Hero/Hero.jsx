@@ -5,13 +5,32 @@ import {
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
-  Image
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import * as api from "../../services/userService";
 
 export default function Hero() {
   const navigation = useNavigation();
+  const chooseNavigationScreen = async () => {
+    const token = await api.getToken();
+    if (token && token.length > 0) {
+      const connectWithToken = async () => {
+        const client = await api.getUserByToken(token);
+        if (client) {
+          navigation.navigate("Tabs");
+        } else {
+          console.log("no user found");
+          navigation.navigate("Login");
+        }
+      };
+      connectWithToken();
+    } else {
+      console.log("no token found");
+      navigation.navigate("Login");
+    }
+  };
 
   return (
     <ImageBackground
@@ -20,7 +39,10 @@ export default function Hero() {
     >
       {/* Slogan */}
       <View style={styles.slogan}>
-        <Image style={styles.Logo} source={require("../../assets/images/Logo_description.png")}/>
+        <Image
+          style={styles.Logo}
+          source={require("../../assets/images/Logo_description.png")}
+        />
       </View>
 
       {/* Image principale */}
@@ -55,10 +77,7 @@ export default function Hero() {
 
       {/* Bouton Start Now */}
       <TouchableOpacity style={styles.startButton}>
-        <Text
-          style={styles.buttonText}
-          onPress={() => navigation.navigate("SignUp")}
-        >
+        <Text style={styles.buttonText} onPress={chooseNavigationScreen}>
           ✨ Start Now
         </Text>
       </TouchableOpacity>
@@ -83,7 +102,7 @@ const styles = StyleSheet.create({
     width: "60%",
     height: "100",
     position: "absolute",
-    zIndex: 10
+    zIndex: 10,
   },
   imageHero: {
     width: "100%",

@@ -1,7 +1,7 @@
 import React from "react";
 import Hero from "../screens/Hero/Hero";
+import Login from "../components/auth/Login";
 import SignUp from "../components/auth/SignUp";
-import Profile from "../screens/Profile/Profile";
 import TabNavigator from "./(tabs)/TabNavigator";
 import { createStackNavigator } from "@react-navigation/stack";
 import "react-native-gesture-handler";
@@ -19,12 +19,12 @@ const AppNavigator = () => (
       name="SignUp"
       component={SignUp}
       options={{ headerShown: false }}
-      />
+    />
     <Stack.Screen
-      name="Profile"
-      component={Profile}
+      name="Login"
+      component={Login}
       options={{ headerShown: false }}
-      />
+    />
     <Stack.Screen
       name="Tabs"
       component={TabNavigator}

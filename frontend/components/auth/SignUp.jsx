@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
-  Button,
   TouchableOpacity,
   Image,
   Alert,
@@ -50,9 +49,6 @@ export default function SignUp() {
   const validationSchema = Yup.object().shape({
     username: Yup.string().required("Le nom d'utilisateur est requis"),
     adresse: Yup.string().required("L'adresse est requise"),
-    contact: Yup.string()
-      .required("Le contact est requis")
-      .matches(/^\d+$/, "Le contact doit être un numéro valide"),
     email: Yup.string()
       .email("Entrez une adresse email valide")
       .required("L'email est requis"),
@@ -94,10 +90,8 @@ export default function SignUp() {
       initialValues={{
         username: "",
         adresse: "",
-        contact: "",
         email: "",
         password: "",
-        // avatar: "",
       }}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
@@ -151,17 +145,6 @@ export default function SignUp() {
           />
           {errors.adresse && touched.adresse && (
             <Text style={styles.error}>{errors.adresse}</Text>
-          )}
-
-          <TextInput
-            style={styles.input}
-            placeholder="Contact"
-            value={values.contact}
-            onChangeText={handleChange("contact")}
-            onBlur={handleBlur("contact")}
-          />
-          {errors.contact && touched.contact && (
-            <Text style={styles.error}>{errors.contact}</Text>
           )}
 
           <TextInput
