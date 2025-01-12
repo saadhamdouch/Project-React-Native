@@ -11,10 +11,16 @@
     "react-native-gesture-handler": "^2.21.2",
     "react-native-reanimated": "^3.16.5",
     "react-native-safe-area-context": "^5.0.0",
-    "react-native-screens": "^4.3.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
     "react-navigation": "^5.0.0",
     "socket.io": "^4.8.1",
-    "styled-components": "^6.1.13"
+    "styled-components": "^6.1.13",
+    "expo": "~52.0.25",
+    "expo-font": "~13.0.3",
+    "expo-image-picker": "~16.0.4",
+    "react-native-webview": "13.12.5",
+    "jest-expo": "~52.0.3"
   }
 }
