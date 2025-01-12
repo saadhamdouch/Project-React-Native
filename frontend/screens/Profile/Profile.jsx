@@ -10,13 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as api from "../../services/userService";
-
-const FriendItem = ({ friend }) => (
-  <View style={styles.friendItem}>
-    <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
-    <Text style={styles.friendName}>{friend.username}</Text>
-  </View>
-);
+import Friends from "../Friends/Friends";
 
 const PostItem = ({ item, width }) => (
   <View style={[styles.postItem, { width }]}>
@@ -57,44 +51,7 @@ const MasonryList = ({ posts, numColumns, containerWidth }) => {
 };
 
 export default function Profile() {
-  const friends = [
-    {
-      _id: "1",
-      username: "Ami1",
-      avatar:
-        "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=1936&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      _id: "2",
-      username: "Ami2",
-      avatar:
-        "https://images.unsplash.com/photo-1631947430066-48c30d57b943?q=80&w=1916&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      _id: "3",
-      username: "Ami3",
-      avatar:
-        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      _id: "4",
-      username: "Ami4",
-      avatar:
-        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      _id: "5",
-      username: "Ami5",
-      avatar:
-        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      _id: "6",
-      username: "Ami6",
-      avatar:
-        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-  ];
+
 
   const posts = [
     { id: "1", imageUrl: "https://picsum.photos/200/300", description: "Beautiful sunset", height: 300 },
@@ -157,9 +114,7 @@ export default function Profile() {
         <View style={styles.friendsSection}>
           <Text style={styles.sectionTitle}>Friends</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {friends.map((friend) => (
-              <FriendItem key={friend._id} friend={friend} />
-            ))}
+            <Friends navigation={navigation} userId={client.userId} />
           </ScrollView>
         </View>
 

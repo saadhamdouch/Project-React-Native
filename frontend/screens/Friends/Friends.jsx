@@ -9,23 +9,25 @@ import {
 } from "react-native";
 import * as api from "../../services/userService";
 
-const Friends = ({ navigation }) => {
+const Friends = ({ navigation, userId}) => {
   const [Friends, setFriends] = useState([]);
 
-  // Fonction pour récupérer les données des utilisateurs
-  const getUsers = async () => {
+  // Fonction pour récupérer les amis de l'utilisateur
+  const getFriends = async () => {
     try {
-      const fetchedFriends = await api.getAllUsers();
+      const fetchedFriends = await api.getUserFriends(userId);
       setFriends(fetchedFriends);
     } catch (error) {
-      console.error("Failed to fetch users:", error);
+      console.error("Failed to fetch friends of this user:", error);
     }
   };
 
   // Récupération des données lors du montage
   useEffect(() => {
-    getUsers();
-  }, []); // Tableau de dépendances vide : s'exécute une seule fois au montage
+    if (userId) {
+      getFriends();
+    }
+  }, [userId]); // Tableau de dépendances vide : s'exécute une seule fois au montage
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -40,7 +42,7 @@ const Friends = ({ navigation }) => {
       <TouchableOpacity
         onPress={() =>
           navigation.navigate("Chat", {
-            friendId: item.id,
+            friendId: item.userId,
             friendName: item.username,
           })
         }
