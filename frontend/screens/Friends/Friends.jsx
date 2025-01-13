@@ -28,7 +28,9 @@ const Friends = ({ navigation, userId}) => {
     });
 
     // Récupérer les contacts depuis l'API (à ajuster selon votre backend)
-    getUsers();
+    if (userId) {
+      getFriends();
+    }
 
     return () => {
       socket.disconnect();
@@ -39,7 +41,6 @@ const Friends = ({ navigation, userId}) => {
   const getFriends = async () => {
     try {
       const fetchedFriends = await api.getUserFriends(userId);
-      const fetchedFriends = await api.getAllUsers();
       const getUserByToken = await api.getUserByToken();
       setFriends(fetchedFriends);
       setUserId(getUserByToken._id);
@@ -61,11 +62,11 @@ const Friends = ({ navigation, userId}) => {
   }
 
   // Récupération des données lors du montage
-  useEffect(() => {
-    if (userId) {
-      getFriends();
-    }
-  }, [userId]); // Tableau de dépendances vide : s'exécute une seule fois au montage
+  // useEffect(() => {
+  //   if (userId) {
+  //     getFriends();
+  //   }
+  // }, [userId]); // Tableau de dépendances vide : s'exécute une seule fois au montage
   // useEffect(() => {
   //   getUsers();
   // }, []); 
@@ -81,12 +82,6 @@ const Friends = ({ navigation, userId}) => {
   const Friend = ({ item }) => {
     return (
       <TouchableOpacity
-        onPress={() =>
-          navigation.navigate("Chat", {
-            friendId: item.userId,
-            friendName: item.username,
-          })
-        }
         onPress={() => handleNavigation(item)}  // Passe la fonction correctement
         style={styles.card}
       >
