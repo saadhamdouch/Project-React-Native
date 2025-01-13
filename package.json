@@ -4,7 +4,11 @@
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/stack": "^7.0.18",
     "cloudinary": "^2.5.1",
+    "expo": "~52.0.25",
     "expo-file-system": "^18.0.6",
+    "expo-font": "~13.0.3",
+    "expo-image-picker": "~16.0.4",
+    "jest-expo": "~52.0.3",
     "jwt-decode": "^4.0.0",
     "react-dom": "^18.3.1",
     "react-native-fs": "^2.20.0",
@@ -14,13 +18,9 @@
     "react-native-screens": "~4.4.0",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-webview": "13.12.5",
     "react-navigation": "^5.0.0",
     "socket.io": "^4.8.1",
-    "styled-components": "^6.1.13",
-    "expo": "~52.0.25",
-    "expo-font": "~13.0.3",
-    "expo-image-picker": "~16.0.4",
-    "react-native-webview": "13.12.5",
-    "jest-expo": "~52.0.3"
+    "styled-components": "^6.1.13"
   }
 }

@@ -1,74 +1,105 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
-import { useState } from "react";
-// Mock API data
-const mockApi = {
-  sender: {
-    id: 1,
-    firstName: "Lamiae",
-    lastName: "Nouri",
-    contact: "0688997766",
-  },
-  receiver: {
-    id: 2,
-    firstName: "Youssef",
-    lastName: "Amrani",
-    contact: "0611223344",
-  },
-  messages: [
-    {
-      content: "Salut, comment ça va ?",
-      date: "2024-12-21T10:00:00",
-    },
-    {
-      content: "Ça va bien, et toi ?",
-      date: "2024-12-21T10:05:00",
-    },
-    {
-      content: "Je vais bien aussi, merci pour ton message.",
-      date: "2024-12-21T10:10:00",
-    },
-    {
-      content: "On se voit ce soir ?",
-      date: "2024-12-21T10:15:00",
-    },
-  ],
-};
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from "react-native";
+import { useRoute } from "@react-navigation/native";
+import io from 'socket.io-client';
+
+
+const socket = io('http://192.168.100.77:3333', {
+  transports: ['websocket'],
+});
 
 const ChatRoom = () => {
   const [message, setMessage] = useState("");
-  // Format the messages for rendering
+  const [messages, setMessages] = useState([]);
+  const [recipientId, setRecipientId] = useState('');
+
+  const route = useRoute();
+  const { friendId, userId } = route.params;
+
+  console.log('ana f chat :',friendId, userId)
+
+
+  useEffect(() => {
+    // Créez la room quand l'écran se charge
+    const roomId = [userId, friendId].sort().join('_'); 
+    socket.emit("joinRoom", roomId);
+
+    // Ecoutez les messages entrants dans cette room
+    socket.on("receiveMessage", (newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
+
+    return () => {
+      socket.off("receiveMessage");
+    };
+  }, [friendId, userId]);
+
+  // useEffect(() => {
+    
+  //   socket.on('chat-message', (data) => {
+  //     console.log('Response from server:', data);
+  //     setMessages((prevMessages) => [...prevMessages, { user: data.user, message: data.message }]);
+  //   });
+  
+    // Nettoyer le socket lors de la déconnexion
+    // return () => {
+    //   socket.disconnect();
+    //   console.log("Disconnected from socket");
+    // };
+  // }, []); // Tableau de dépendances vide : cela garantit que l'effet est exécuté une seule fois au montage  
+
+  // const sendMessage = () => {
+  //   console.log(message);
+  //   const newMessage = message;
+    // socket.emit('private-message', {
+    //   user: socket.id,
+    //   message: newMessage,
+    // });
+  //   setMessages((prevMessages) => [...prevMessages, { user: socket.id, message: message }]);
+  //   setMessage('');
+  // };
+
+  // console.log('my id:',socket.id)
+
+  const sendMessage = () => {
+    if (message.trim() === "") return; // Ne pas envoyer de message vide
+
+    const roomId = [userId, friendId].sort().join('_'); // Room basée sur les ID des utilisateurs
+    const newMessage = {
+      senderId: userId,
+      receiverId: friendId,
+      message: message,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Émettre le message à la room via socket
+    socket.emit("sendMessage", { roomId, newMessage });
+
+    // Ajout du message localement
+    // setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setMessage(""); // Effacer le champ de message après envoi
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-  const isSender = true;
-  const MessageItem = ({ item, isSender }) => (
-    <View
-      style={[
-        styles.messageContainer,
-        isSender ? styles.senderMessage : styles.receiverMessage,
-      ]}
-    >
-      <Text style={styles.messageContent}>{item.content}</Text>
-      <Text style={styles.messageDate}>{formatDate(item.date)}</Text>
-    </View>
-  );
+
+  const MessageItem = ({ item }) => {
+   const isSender = item.senderId == userId;
+    // const isSender = true;
+    return (
+      <View style={[styles.messageContainer, isSender ? styles.senderMessage : styles.receiverMessage]}>
+        <Text style={styles.messageContent}>{item.message}</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={mockApi.messages}
-        renderItem={({ item }) => {
-          return <MessageItem item={item} isSender={isSender} />;
-        }}
+        data={messages}
+        renderItem={({ item }) => <MessageItem item={item} />}
         keyExtractor={(item, index) => index.toString()}
       />
       <View style={styles.inputContainer}>
@@ -77,10 +108,9 @@ const ChatRoom = () => {
           placeholder="Type your message..."
           placeholderTextColor="#999"
           value={message}
-          onChangeText={setMessage}
+          onChangeText={(text) => { setMessage(text) }}
         />
-        {/* Send Button */}
-        <TouchableOpacity style={styles.sendButton}>
+        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </View>
@@ -93,11 +123,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     backgroundColor: "#f3f3f3",
-  },
-  chatTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
   },
   messageContainer: {
     maxWidth: "80%",
@@ -115,11 +140,6 @@ const styles = StyleSheet.create({
   },
   messageContent: {
     fontSize: 16,
-  },
-  messageDate: {
-    fontSize: 12,
-    color: "#757575",
-    textAlign: "right",
   },
   sendButton: {
     backgroundColor: "#6A0DAD", // Violet
