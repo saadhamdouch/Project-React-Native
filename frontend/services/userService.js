@@ -70,6 +70,18 @@ export const getAllUsers = async () => {
   }
 };
 
+export const getUserFriends = async (userId) => {
+  try {
+    const response = await axios.get(`${API_URL}/${userId}/friends`);
+    const friends = response.data.friends;
+    console.log("Friends:", friends);
+    return friends;
+  } catch (error) {
+    console.error("Failed to fetch users' friends:", error.message);
+    throw error;
+  }
+};
+
 export const createUser = async (user) => {
   try {
     const response = await axios.post(`${API_URL}/create`, user);

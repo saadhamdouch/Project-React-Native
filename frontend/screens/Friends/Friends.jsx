@@ -16,7 +16,7 @@ const socket = io('http://192.168.100.77:3333', {
 });
 
 
-const Friends = ({ navigation }) => {
+const Friends = ({ navigation, userId}) => {
   const [Friends, setFriends] = useState([]);
   const [userId, setUserId] = useState('');
 
@@ -35,15 +35,16 @@ const Friends = ({ navigation }) => {
     };
   }, []);
 
-  // Fonction pour récupérer les données des utilisateurs
-  const getUsers = async () => {
+  // Fonction pour récupérer les amis de l'utilisateur
+  const getFriends = async () => {
     try {
+      const fetchedFriends = await api.getUserFriends(userId);
       const fetchedFriends = await api.getAllUsers();
       const getUserByToken = await api.getUserByToken();
       setFriends(fetchedFriends);
       setUserId(getUserByToken._id);
     } catch (error) {
-      console.error("Failed to fetch users:", error);
+      console.error("Failed to fetch friends of this user:", error);
     }
   };
 
@@ -60,6 +61,11 @@ const Friends = ({ navigation }) => {
   }
 
   // Récupération des données lors du montage
+  useEffect(() => {
+    if (userId) {
+      getFriends();
+    }
+  }, [userId]); // Tableau de dépendances vide : s'exécute une seule fois au montage
   // useEffect(() => {
   //   getUsers();
   // }, []); 
@@ -75,6 +81,12 @@ const Friends = ({ navigation }) => {
   const Friend = ({ item }) => {
     return (
       <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("Chat", {
+            friendId: item.userId,
+            friendName: item.username,
+          })
+        }
         onPress={() => handleNavigation(item)}  // Passe la fonction correctement
         style={styles.card}
       >
