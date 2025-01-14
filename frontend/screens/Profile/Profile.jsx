@@ -11,9 +11,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as api from "../../services/userService";
-<<<<<<< HEAD
-import Friends from "../Friends/Friends";
-=======
 import Icon from "react-native-vector-icons/FontAwesome";
 import AddPostIcon from "react-native-vector-icons/MaterialIcons";
 import DeleteAccountIcon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -89,7 +86,6 @@ const FriendItem = ({ friend }) => (
     <Text style={styles.friendName}>{friend.username}</Text>
   </View>
 );
->>>>>>> 268e4410fa7b2fb0269e341f49fc9de79e764077
 
 const PostItem = ({ item, width }) => (
   <View style={[styles.postItem, { width }]}>
@@ -129,24 +125,8 @@ const MasonryList = ({ posts, numColumns, containerWidth }) => {
   );
 };
 
-<<<<<<< HEAD
-export default function Profile() {
-
-
-  const posts = [
-    { id: "1", imageUrl: "https://picsum.photos/200/300", description: "Beautiful sunset", height: 300 },
-    { id: "2", imageUrl: "https://picsum.photos/200/200", height: 200 },
-    { id: "3", imageUrl: "https://picsum.photos/200/400", description: "My new artwork", height: 400 },
-    { id: "4", imageUrl: "https://picsum.photos/200/250", height: 250 },
-    { id: "5", imageUrl: "https://picsum.photos/200/350", description: "City lights", height: 350 },
-    { id: "6", imageUrl: "https://picsum.photos/200/280", height: 280 },
-  ];
-
-
-=======
 export default function Profile({ navigation }) {
   const [showAddPostModal, setShowAddPostModal] = useState(true);
->>>>>>> 268e4410fa7b2fb0269e341f49fc9de79e764077
   const [client, setClient] = useState({});
   const findOne = async () => {
     const user = await api.getUserByToken();
@@ -239,30 +219,6 @@ export default function Profile({ navigation }) {
             </ScrollView>
           </View>
 
-<<<<<<< HEAD
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Account Info</Text>
-          <Text style={styles.infoText}>Member since: {formattedDate}</Text>
-        </View>
-
-        <View style={styles.friendsSection}>
-          <Text style={styles.sectionTitle}>Friends</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <Friends navigation={navigation} userId={client.userId} />
-          </ScrollView>
-        </View>
-
-        <View style={styles.postsSection}>
-          <Text style={styles.sectionTitle}>Posts</Text>
-          <MasonryList 
-            posts={posts} 
-            numColumns={numColumns} 
-            containerWidth={screenWidth - 40} // Accounting for padding
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-=======
           <View style={styles.postsSection}>
             <Text style={styles.sectionTitle}>Posts</Text>
             <MasonryList
@@ -274,7 +230,6 @@ export default function Profile({ navigation }) {
         </ScrollView>
       </SafeAreaView>
     </>
->>>>>>> 268e4410fa7b2fb0269e341f49fc9de79e764077
   );
 }
 
