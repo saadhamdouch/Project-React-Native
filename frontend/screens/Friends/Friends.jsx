@@ -16,7 +16,7 @@ const socket = io('http://192.168.100.77:3333', {
 });
 
 
-const Friends = ({ navigation, userId}) => {
+const Friends = ({ navigation }) => {
   const [Friends, setFriends] = useState([]);
   const [userId, setUserId] = useState('');
 
@@ -28,24 +28,22 @@ const Friends = ({ navigation, userId}) => {
     });
 
     // Récupérer les contacts depuis l'API (à ajuster selon votre backend)
-    if (userId) {
-      getFriends();
-    }
+    getUsers();
 
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  // Fonction pour récupérer les amis de l'utilisateur
-  const getFriends = async () => {
+  // Fonction pour récupérer les données des utilisateurs
+  const getUsers = async () => {
     try {
-      const fetchedFriends = await api.getUserFriends(userId);
+      const fetchedFriends = await api.getAllUsers();
       const getUserByToken = await api.getUserByToken();
       setFriends(fetchedFriends);
       setUserId(getUserByToken._id);
     } catch (error) {
-      console.error("Failed to fetch friends of this user:", error);
+      console.error("Failed to fetch users:", error);
     }
   };
 
@@ -62,11 +60,6 @@ const Friends = ({ navigation, userId}) => {
   }
 
   // Récupération des données lors du montage
-  // useEffect(() => {
-  //   if (userId) {
-  //     getFriends();
-  //   }
-  // }, [userId]); // Tableau de dépendances vide : s'exécute une seule fois au montage
   // useEffect(() => {
   //   getUsers();
   // }, []); 
