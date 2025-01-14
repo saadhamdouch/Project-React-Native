@@ -8,61 +8,24 @@ import {
   Image,
 } from "react-native";
 import * as api from "../../services/userService";
-import io from 'socket.io-client';
-
-
-const socket = io('http://192.168.100.77:3333', {
-  transports: ['websocket'],
-});
-
 
 const Friends = ({ navigation }) => {
   const [Friends, setFriends] = useState([]);
-  const [userId, setUserId] = useState('');
-
-  useEffect(() => {
-    // Se connecter au serveur
-    socket.on('connection', () => {
-      console.log('Connecté au socket serveur');
-      setUserId(socket.id);
-    });
-
-    // Récupérer les contacts depuis l'API (à ajuster selon votre backend)
-    getUsers();
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
 
   // Fonction pour récupérer les données des utilisateurs
   const getUsers = async () => {
     try {
       const fetchedFriends = await api.getAllUsers();
-      const getUserByToken = await api.getUserByToken();
       setFriends(fetchedFriends);
-      setUserId(getUserByToken._id);
     } catch (error) {
       console.error("Failed to fetch users:", error);
     }
   };
 
-  const handleNavigation = (item) => {
-    navigation.navigate("Chat", {
-      friendId: item._id,
-      friendName: item.username,
-      userId: userId,
-    })
-
-    const roomId = [userId, item._id ].sort().join('_'); // Exemple de roomId basé sur les IDs des utilisateurs
-    socket.emit('joinRoom', roomId);
-    console.log(`Vous avez rejoint la room: ${roomId}`);
-  }
-
   // Récupération des données lors du montage
-  // useEffect(() => {
-  //   getUsers();
-  // }, []); 
+  useEffect(() => {
+    getUsers();
+  }, []); // Tableau de dépendances vide : s'exécute une seule fois au montage
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -75,7 +38,12 @@ const Friends = ({ navigation }) => {
   const Friend = ({ item }) => {
     return (
       <TouchableOpacity
-        onPress={() => handleNavigation(item)}  // Passe la fonction correctement
+        onPress={() =>
+          navigation.navigate("Chat", {
+            friendId: item.id,
+            friendName: item.username,
+          })
+        }
         style={styles.card}
       >
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
