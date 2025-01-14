@@ -11,7 +11,81 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as api from "../../services/userService";
-import Friends from "../Friends/Friends";
+import Icon from "react-native-vector-icons/FontAwesome";
+import AddPostIcon from "react-native-vector-icons/MaterialIcons";
+import DeleteAccountIcon from "react-native-vector-icons/MaterialCommunityIcons";
+import AddPost from "./AddPost";
+import navigation from "@react-navigation/stack";
+
+const friends = [
+  {
+    _id: "1",
+    username: "Ami1",
+    avatar:
+      "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=1936&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    _id: "2",
+    username: "Ami2",
+    avatar:
+      "https://images.unsplash.com/photo-1631947430066-48c30d57b943?q=80&w=1916&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    _id: "3",
+    username: "Ami3",
+    avatar:
+      "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    _id: "4",
+    username: "Ami4",
+    avatar:
+      "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    _id: "5",
+    username: "Ami5",
+    avatar:
+      "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    _id: "6",
+    username: "Ami6",
+    avatar:
+      "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+];
+
+const posts = [
+  {
+    id: "1",
+    imageUrl: "https://picsum.photos/200/300",
+    description: "Beautiful sunset",
+    height: 300,
+  },
+  { id: "2", imageUrl: "https://picsum.photos/200/200", height: 200 },
+  {
+    id: "3",
+    imageUrl: "https://picsum.photos/200/400",
+    description: "My new artwork",
+    height: 400,
+  },
+  { id: "4", imageUrl: "https://picsum.photos/200/250", height: 250 },
+  {
+    id: "5",
+    imageUrl: "https://picsum.photos/200/350",
+    description: "City lights",
+    height: 350,
+  },
+  { id: "6", imageUrl: "https://picsum.photos/200/280", height: 280 },
+];
+
+const FriendItem = ({ friend }) => (
+  <View style={styles.friendItem}>
+    <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
+    <Text style={styles.friendName}>{friend.username}</Text>
+  </View>
+);
 
 const PostItem = ({ item, width }) => (
   <View style={[styles.postItem, { width }]}>
@@ -51,19 +125,8 @@ const MasonryList = ({ posts, numColumns, containerWidth }) => {
   );
 };
 
-export default function Profile() {
-
-
-  const posts = [
-    { id: "1", imageUrl: "https://picsum.photos/200/300", description: "Beautiful sunset", height: 300 },
-    { id: "2", imageUrl: "https://picsum.photos/200/200", height: 200 },
-    { id: "3", imageUrl: "https://picsum.photos/200/400", description: "My new artwork", height: 400 },
-    { id: "4", imageUrl: "https://picsum.photos/200/250", height: 250 },
-    { id: "5", imageUrl: "https://picsum.photos/200/350", description: "City lights", height: 350 },
-    { id: "6", imageUrl: "https://picsum.photos/200/280", height: 280 },
-  ];
-
-
+export default function Profile({ navigation }) {
+  const [showAddPostModal, setShowAddPostModal] = useState(true);
   const [client, setClient] = useState({});
   const findOne = async () => {
     const user = await api.getUserByToken();
@@ -82,7 +145,7 @@ export default function Profile() {
   }, []);
 
   if (!client) {
-    return <Text>Loading...</Text>; // Afficher un message de chargement si `client` est null
+    return <Text>Loading...</Text>; // Afficher un message de chargement si client est null
   }
 
   const handleLogout = async () => {
@@ -156,28 +219,16 @@ export default function Profile() {
             </ScrollView>
           </View>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Account Info</Text>
-          <Text style={styles.infoText}>Member since: {formattedDate}</Text>
-        </View>
-
-        <View style={styles.friendsSection}>
-          <Text style={styles.sectionTitle}>Friends</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <Friends navigation={navigation} userId={client.userId} />
-          </ScrollView>
-        </View>
-
-        <View style={styles.postsSection}>
-          <Text style={styles.sectionTitle}>Posts</Text>
-          <MasonryList 
-            posts={posts} 
-            numColumns={numColumns} 
-            containerWidth={screenWidth - 40} // Accounting for padding
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.postsSection}>
+            <Text style={styles.sectionTitle}>Posts</Text>
+            <MasonryList
+              posts={posts}
+              numColumns={numColumns}
+              containerWidth={screenWidth - 40} // Accounting for padding
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </>
   );
 }
@@ -303,4 +354,4 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
   },
-});
+})
