@@ -4,7 +4,7 @@ import { useRoute } from "@react-navigation/native";
 import io from 'socket.io-client';
 
 
-const socket = io('http://192.168.100.77:3333', {
+const socket = io('http://192.168.1.53:3333', {
   transports: ['websocket'],
 });
 
@@ -168,4 +168,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChatRoom;
+export default ChatRoom

@@ -145,7 +145,7 @@ export default function Profile({ navigation }) {
   }, []);
 
   if (!client) {
-    return <Text>Loading...</Text>; // Afficher un message de chargement si `client` est null
+    return <Text>Loading...</Text>; // Afficher un message de chargement si client est null
   }
 
   const handleLogout = async () => {
@@ -354,4 +354,4 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
   },
-});
+})
