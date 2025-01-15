@@ -11,7 +11,7 @@ import * as api from "../../services/userService";
 import io from 'socket.io-client';
 
 
-const socket = io('http://192.168.1.53:3333', {
+const socket = io('http://192.168.100.52:3333', {
   transports: ['websocket'],
 });
 
@@ -54,7 +54,7 @@ const Friends = ({ navigation }) => {
       userId: userId,
     })
 
-    const roomId = [userId, item.id ].sort().join(''); // Exemple de roomId basé sur les IDs des utilisateurs
+    const roomId = [userId, item.id ].sort().join(''); 
     socket.emit('joinRoom', roomId);
     console.log(`Vous avez rejoint la room: ${roomId}`);
   }

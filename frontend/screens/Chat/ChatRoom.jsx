@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import { useNavigation } from '@react-navigation/native';
 import io from 'socket.io-client';
 
 
-const socket = io('http://192.168.1.53:3333', {
+const socket = io('http://192.168.100.52:3333', {
   transports: ['websocket'],
 });
 
@@ -14,7 +15,9 @@ const ChatRoom = () => {
   const [recipientId, setRecipientId] = useState('');
 
   const route = useRoute();
-  const { friendId, userId } = route.params;
+  const { friendId, friendName, userId } = route.params;
+
+  const navigation = useNavigation()
 
   console.log('ana f chat :',friendId, userId)
 
@@ -34,32 +37,6 @@ const ChatRoom = () => {
     };
   }, [friendId, userId]);
 
-  // useEffect(() => {
-    
-  //   socket.on('chat-message', (data) => {
-  //     console.log('Response from server:', data);
-  //     setMessages((prevMessages) => [...prevMessages, { user: data.user, message: data.message }]);
-  //   });
-  
-    // Nettoyer le socket lors de la déconnexion
-    // return () => {
-    //   socket.disconnect();
-    //   console.log("Disconnected from socket");
-    // };
-  // }, []); // Tableau de dépendances vide : cela garantit que l'effet est exécuté une seule fois au montage  
-
-  // const sendMessage = () => {
-  //   console.log(message);
-  //   const newMessage = message;
-    // socket.emit('private-message', {
-    //   user: socket.id,
-    //   message: newMessage,
-    // });
-  //   setMessages((prevMessages) => [...prevMessages, { user: socket.id, message: message }]);
-  //   setMessage('');
-  // };
-
-  // console.log('my id:',socket.id)
 
   const sendMessage = () => {
     if (message.trim() === "") return; // Ne pas envoyer de message vide
@@ -79,6 +56,17 @@ const ChatRoom = () => {
     // setMessages((prevMessages) => [...prevMessages, newMessage]);
     setMessage(""); // Effacer le champ de message après envoi
   };
+
+  const HandlCall = ()=>{
+    
+    navigation.navigate("CallPage", {
+      friendId: friendId,
+      friendName: friendName,
+      userId: userId,
+    })
+
+    console.log('calling...')
+  }
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -110,6 +98,9 @@ const ChatRoom = () => {
           value={message}
           onChangeText={(text) => { setMessage(text) }}
         />
+        <TouchableOpacity onPress={HandlCall} style={styles.sendButton}>
+          <Text style={styles.sendButtonText}>call</Text>
+      </TouchableOpacity>
         <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
