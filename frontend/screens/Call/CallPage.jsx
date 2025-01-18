@@ -4,7 +4,7 @@ import { useRoute } from "@react-navigation/native";
 import io from 'socket.io-client';
 import Peer from 'peerjs';
 
-const socket = io('http://192.168.100.52:3333', {
+const socket = io('http://localhost:8080', {
   transports: ['websocket'],
 });
 

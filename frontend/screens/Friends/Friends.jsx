@@ -11,7 +11,7 @@ import * as api from "../../services/userService";
 import io from 'socket.io-client';
 
 
-const socket = io('http://192.168.100.52:3333', {
+const socket = io('http://localhost:8080', {
   transports: ['websocket'],
 });
 

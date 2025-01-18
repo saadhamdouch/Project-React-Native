@@ -165,9 +165,9 @@ export default function Profile({ navigation }) {
     : "Date inconnue";
   return (
     <>
-      <View>
+      {/* <View>
         <AddPost visible={true}/>
-      </View>
+      </View> */}
       <SafeAreaView style={styles.container} visible={false}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>

@@ -1,6 +1,6 @@
 const axios = require("axios").default;
 import AsyncStorage from "@react-native-async-storage/async-storage";
-const API_URL = "https://momeetbackend.cleverapps.io/api/posts";
+const API_URL = "http://localhost:8080/api/posts";
 
 export const getAllPosts = async () => {
   try {
