@@ -6,9 +6,10 @@ import Home from "../../screens/Home/Home";
 import CallPage from "../../screens/Call/CallPage";
 const FriendsStack = createStackNavigator();
 
-const FriendsNavigation = () => {
+const FriendsNavigation = ({navigation}) => {
+
   return (
-    <FriendsStack.Navigator initialRouteName="Friends">
+    <FriendsStack.Navigator initialRouteName="Home">
       <FriendsStack.Screen
         name="Home"
         component={Home}
@@ -16,7 +17,7 @@ const FriendsNavigation = () => {
       <FriendsStack.Screen
         name="Friends"
         component={Friends}
-        options={{ title: "My Friends" }}
+        options={{ headerShown: false }}
       />
       <FriendsStack.Screen
         name="Chat"

@@ -10,11 +10,12 @@ import {
 import * as api from "../../services/userService";
 import io from 'socket.io-client';
 
-
-const socket = io('http://localhost:8080', {
+const urlDeployed ="https://confastservice.onrender.com";
+const url = "http://localhost:8080";
+const socket = io(urlDeployed, {
+  path: "/chat",
   transports: ['websocket'],
 });
-
 
 const Friends = ({ navigation }) => {
   const [Friends, setFriends] = useState([]);
@@ -28,7 +29,8 @@ const Friends = ({ navigation }) => {
     });
 
     // Récupérer les contacts depuis l'API (à ajuster selon votre backend)
-    getUsers();
+    getUserId();
+
 
     return () => {
       socket.disconnect();
@@ -36,11 +38,9 @@ const Friends = ({ navigation }) => {
   }, []);
 
   // Fonction pour récupérer les données des utilisateurs
-  const getUsers = async () => {
+  const getUserId = async () => {
     try {
-      const fetchedFriends = await api.getAllUsers();
-      const getUserByToken = await api.getUserByToken();
-      setFriends(fetchedFriends);
+      const getUserByToken = await api.getUserByToken();    
       setUserId(getUserByToken._id);
     } catch (error) {
       console.error("Failed to fetch users:", error);
@@ -63,7 +63,15 @@ const Friends = ({ navigation }) => {
   // useEffect(() => {
   //   getUsers();
   // }, []); 
-
+  const getFriend = async ()=>{
+    if(userId){
+      const fetchedFriends = await api.getUserFriends(userId);
+      setFriends(fetchedFriends);
+    }
+  }
+  useEffect(()=>{
+    getFriend();
+  },[userId != ""]);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0'); // Ajoute un zéro au début si le jour est < 10

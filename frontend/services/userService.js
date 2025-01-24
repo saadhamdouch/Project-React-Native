@@ -1,6 +1,6 @@
 const axios = require("axios").default;
 import AsyncStorage from "@react-native-async-storage/async-storage";
-const API_URL = "http://localhost:8080/api/clients";
+const API_URL = "https://momeetbackend.cleverapps.io/api/clients";
 
 export const storeToken = async (jwt) => {
   const expirationTime = 1000 * 60 * 60 * 24 * 5; // 5 jours
@@ -72,9 +72,8 @@ export const getAllUsers = async () => {
 
 export const getUserFriends = async (userId) => {
   try {
-    const response = await axios.get(`${API_URL}/${userId}/friends`);
-    const friends = response.data.friends;
-    console.log("Friends:", friends);
+    const response = await axios.get(`${API_URL}/friends/${userId}`);
+    const friends = response.data;
     return friends;
   } catch (error) {
     console.error("Failed to fetch users' friends:", error.message);

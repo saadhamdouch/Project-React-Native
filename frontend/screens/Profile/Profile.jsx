@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,81 +13,34 @@ import * as api from "../../services/userService";
 import Icon from "react-native-vector-icons/FontAwesome";
 import AddPostIcon from "react-native-vector-icons/MaterialIcons";
 import DeleteAccountIcon from "react-native-vector-icons/MaterialCommunityIcons";
-import AddPost from "./AddPost";
-import navigation from "@react-navigation/stack";
-
-const friends = [
-  {
-    _id: "1",
-    username: "Ami1",
-    avatar:
-      "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=1936&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    _id: "2",
-    username: "Ami2",
-    avatar:
-      "https://images.unsplash.com/photo-1631947430066-48c30d57b943?q=80&w=1916&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    _id: "3",
-    username: "Ami3",
-    avatar:
-      "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    _id: "4",
-    username: "Ami4",
-    avatar:
-      "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    _id: "5",
-    username: "Ami5",
-    avatar:
-      "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    _id: "6",
-    username: "Ami6",
-    avatar:
-      "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-];
 
 const posts = [
-  {
-    id: "1",
-    imageUrl: "https://picsum.photos/200/300",
-    description: "Beautiful sunset",
-    height: 300,
-  },
+  { id: "1", imageUrl: "https://picsum.photos/200/300", description: "Beautiful sunset", height: 300 },
   { id: "2", imageUrl: "https://picsum.photos/200/200", height: 200 },
-  {
-    id: "3",
-    imageUrl: "https://picsum.photos/200/400",
-    description: "My new artwork",
-    height: 400,
-  },
+  { id: "3", imageUrl: "https://picsum.photos/200/400", description: "My new artwork", height: 400 },
   { id: "4", imageUrl: "https://picsum.photos/200/250", height: 250 },
-  {
-    id: "5",
-    imageUrl: "https://picsum.photos/200/350",
-    description: "City lights",
-    height: 350,
-  },
+  { id: "5", imageUrl: "https://picsum.photos/200/350", description: "City lights", height: 350 },
   { id: "6", imageUrl: "https://picsum.photos/200/280", height: 280 },
 ];
 
-const FriendItem = ({ friend }) => (
-  <View style={styles.friendItem}>
-    <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
-    <Text style={styles.friendName}>{friend.username}</Text>
-  </View>
+const FriendItem = ({ friend, onPress }) => (
+  <TouchableOpacity onPress={onPress}>
+    <View style={styles.friendItem}>
+      <Image
+        source={{
+          uri: friend.avatar
+            ? friend.avatar
+            : "../../assets/images/profileImage.jpg",
+        }}
+        style={styles.friendAvatar}
+      />
+      <Text style={styles.friendName}>{friend.username}</Text>
+    </View>
+  </TouchableOpacity>
 );
 
 const PostItem = ({ item, width }) => (
-  <View style={[styles.postItem, { width }]}>
+  <View style={[styles.postItem, { width }]}> 
     <Image
       source={{ uri: item.imageUrl }}
       style={[styles.postImage, { width, height: item.height }]}
@@ -126,27 +78,48 @@ const MasonryList = ({ posts, numColumns, containerWidth }) => {
 };
 
 export default function Profile({ navigation }) {
-  const [showAddPostModal, setShowAddPostModal] = useState(true);
-  const [client, setClient] = useState({});
+  const [showAddPostModal, setShowAddPostModal] = useState(false);
+  const [client, setClient] = useState(null);
+  const [friends, setFriends] = useState([]);
+
   const findOne = async () => {
-    const user = await api.getUserByToken();
-    if (!user) {
-      console.error("User undifined");
-      return;
-    }
     try {
+      const user = await api.getUserByToken();
+      if (!user) {
+        console.error("User undefined");
+        return;
+      }
       setClient(user);
     } catch (error) {
       console.error("Error fetching user:", error);
     }
   };
+
+  const handleNavigate = (friend) => {
+    navigation.navigate("VisitedProfile", {
+      friend,
+      clientId : client._id
+    });
+  };
+
   useEffect(() => {
     findOne();
   }, []);
 
-  if (!client) {
-    return <Text>Loading...</Text>; // Afficher un message de chargement si client est null
-  }
+  const getFriend = async () => {
+    if (client?._id) {
+      try {
+        const fetchedFriends = await api.getUserFriends(client._id);
+        setFriends(fetchedFriends);
+      } catch (error) {
+        console.error("Error fetching friends:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getFriend();
+  }, [client?._id]);
 
   const handleLogout = async () => {
     const isLoggedout = await api.logout();
@@ -154,82 +127,81 @@ export default function Profile({ navigation }) {
       navigation.navigate("Login");
     }
   };
-  const handleAddPost = () => {
-    setShowAddPostModal(true);
-  };
 
   const screenWidth = Dimensions.get("window").width;
   const numColumns = 2;
-  const formattedDate = client.createdAt
+  const formattedDate = client?.createdAt
     ? new Date(client.createdAt).toDateString()
     : "Date inconnue";
-  return (
-    <>
-      {/* <View>
-        <AddPost visible={true}/>
-      </View> */}
-      <SafeAreaView style={styles.container} visible={false}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.logoutButton}
-              onPress={handleLogout}
-            >
-              <Icon name="sign-out" size={24} color="#4169E1" />
-            </TouchableOpacity>
-            <Image
-              source={
-                client.avatar && client.avatar.trim() !== ""
-                  ? { uri: client.avatar }
-                  : require("../../assets/images/profileImage.jpg")
-              }
-              style={styles.avatar}
-            />
-            <Text style={styles.username}>{client.username}</Text>
-            <Text style={styles.email}>{client.email}</Text>
-          </View>
-          <View style={styles.actionsSection}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("EditProfile")}
-            >
-              <Icon name="edit" size={35} color="#4169E1" />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <AddPostIcon
-                name="post-add"
-                size={35}
-                color="#4169E1"
-                onPress={handleAddPost}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <DeleteAccountIcon name="delete" size={35} color="#4169E1" />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.infoSection}>
-            <Text style={styles.sectionTitle}>Account Info</Text>
-            <Text style={styles.infoText}>Member since: {formattedDate}</Text>
-          </View>
-          <View style={styles.friendsSection}>
-            <Text style={styles.sectionTitle}>Friends</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {friends.map((friend) => (
-                <FriendItem key={friend._id} friend={friend} />
-              ))}
-            </ScrollView>
-          </View>
 
-          <View style={styles.postsSection}>
-            <Text style={styles.sectionTitle}>Posts</Text>
-            <MasonryList
-              posts={posts}
-              numColumns={numColumns}
-              containerWidth={screenWidth - 40} // Accounting for padding
-            />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+  if (!client) {
+    return <Text>Chargement...</Text>;
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Icon name="sign-out" size={24} color="#4169E1" />
+          </TouchableOpacity>
+          <Image
+            source={
+              client.avatar && client.avatar.trim() !== ""
+                ? { uri: client.avatar }
+                : require("../../assets/images/profileImage.jpg")
+            }
+            style={styles.avatar}
+          />
+          <Text style={styles.username}>{client.username}</Text>
+          <Text style={styles.email}>{client.email}</Text>
+        </View>
+
+        <View style={styles.actionsSection}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("EditProfile")}
+          >
+            <Icon name="edit" size={35} color="#4169E1" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowAddPostModal(true)}>
+            <AddPostIcon name="post-add" size={35} color="#4169E1" />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <DeleteAccountIcon name="delete" size={35} color="#4169E1" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Informations du compte</Text>
+          <Text style={styles.infoText}>Membre depuis : {formattedDate}</Text>
+        </View>
+
+        <View style={styles.friendsSection}>
+          <Text style={styles.sectionTitle}>Amis</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {friends.map((friend) => (
+              <FriendItem
+                key={friend._id}
+                friend={friend}
+                onPress={() => handleNavigate(friend)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.postsSection}>
+          <Text style={styles.sectionTitle}>Posts</Text>
+          <MasonryList
+            posts={posts}
+            numColumns={numColumns}
+            containerWidth={screenWidth - 40}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -354,4 +326,4 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
   },
-})
+});

@@ -4,7 +4,10 @@ import { useRoute } from "@react-navigation/native";
 import io from 'socket.io-client';
 import Peer from 'peerjs';
 
-const socket = io('http://localhost:8080', {
+const urlDeployed ="https://confastservice.onrender.com";
+const url = "http://localhost:8080";
+const socket = io(urlDeployed, {
+  path: "/chat",
   transports: ['websocket'],
 });
 
