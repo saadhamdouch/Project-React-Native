@@ -8,29 +8,29 @@ import {
   Image,
 } from "react-native";
 import * as api from "../../services/userService";
-import io from 'socket.io-client';
+import io from "socket.io-client";
+import { Ionicons } from "@expo/vector-icons";
 
-const urlDeployed ="https://confastservice.onrender.com";
+const urlDeployed = "https://confastservice.onrender.com";
 const url = "http://localhost:8080";
 const socket = io(urlDeployed, {
   path: "/chat",
-  transports: ['websocket'],
+  transports: ["websocket"],
 });
 
 const Friends = ({ navigation }) => {
   const [Friends, setFriends] = useState([]);
-  const [userId, setUserId] = useState('');
-
+  const [userId, setUserId] = useState("");
+  const [user, setUser] = useState({});
   useEffect(() => {
     // Se connecter au serveur
-    socket.on('connection', () => {
-      console.log('Connecté au socket serveur');
+    socket.on("connection", () => {
+      console.log("Connecté au socket serveur");
       setUserId(socket.id);
     });
 
     // Récupérer les contacts depuis l'API (à ajuster selon votre backend)
-    getUserId();
-
+    getUser();
 
     return () => {
       socket.disconnect();
@@ -38,80 +38,116 @@ const Friends = ({ navigation }) => {
   }, []);
 
   // Fonction pour récupérer les données des utilisateurs
-  const getUserId = async () => {
+  const getUser = async () => {
     try {
-      const getUserByToken = await api.getUserByToken();    
+      const getUserByToken = await api.getUserByToken();
+      setUser(getUserByToken);
       setUserId(getUserByToken._id);
     } catch (error) {
       console.error("Failed to fetch users:", error);
     }
   };
 
-  const handleNavigation = (item) => {
-    navigation.navigate("Chat", {
-      friendId: item._id,
-      friendName: item.username,
-      userId: userId,
-    })
+  const handleNavigation = (item, page) => {
+    if (page === "chat") {
+      navigation.navigate("Chat", {
+        friendId: item._id,
+        friendName: item.username,
+        userId: userId,
+      });
+    } else if (page === "VisitedProfile") {
+      navigation.navigate("VisitedProfile", {
+        friend: item,
+        clientId: userId,
+      });
+    }
 
-    const roomId = [userId, item.id ].sort().join(''); 
-    socket.emit('joinRoom', roomId);
+    const roomId = [userId, item.id].sort().join("");
+    socket.emit("joinRoom", roomId);
     console.log(`Vous avez rejoint la room: ${roomId}`);
-  }
+  };
 
-  // Récupération des données lors du montage
-  // useEffect(() => {
-  //   getUsers();
-  // }, []); 
-  const getFriend = async ()=>{
-    if(userId){
+  const getFriend = async () => {
+    if (userId) {
       const fetchedFriends = await api.getUserFriends(userId);
       setFriends(fetchedFriends);
     }
-  }
-  useEffect(()=>{
+  };
+  useEffect(() => {
     getFriend();
-  },[userId != ""]);
+  }, [userId != ""]);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0'); // Ajoute un zéro au début si le jour est < 10
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Les mois commencent à 0
+    const day = String(date.getDate()).padStart(2, "0"); // Ajoute un zéro au début si le jour est < 10
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Les mois commencent à 0
     const year = date.getFullYear();
     return `${day} - ${month} - ${year}`;
   };
 
   const Friend = ({ item }) => {
     return (
-      <TouchableOpacity
-        onPress={() => handleNavigation(item)}  // Passe la fonction correctement
-        style={styles.card}
-      >
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-        <View>
-          <View style={styles.name}>
-            <Text style={{ fontWeight: "600" }}>{item.username}</Text>
-          </View>
-          <View style={styles.name}>
-            <Text style={{ fontWeight: "600" }}>{item.email}</Text>
-          </View>
-          {/* <View style={{ flexDirection: "row" }}>
+      <View style={styles.card}>
+        <TouchableOpacity
+          onPress={() => handleNavigation(item, "VisitedProfile")}
+          style={{ width: "20%" }}
+        >
+          <Image source={{ uri: item.avatar }} style={styles.avatar} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => handleNavigation(item, "chat")}
+          style={{ width: "80%" }}
+        >
+          <View>
+            <View style={styles.name}>
+              <Text style={{ fontWeight: "600" }}>{item.username}</Text>
+            </View>
+            <View style={styles.name}>
+              <Text style={{ fontWeight: "600" }}>{item.email}</Text>
+            </View>
+            {/* <View style={{ flexDirection: "row" }}>
             <Text style={{ fontWeight: "600" }}>
               Last Message : {item.lastMessage.slice(0, 25)}
             </Text>
             {item.lastMessage.length > 25 ? <Text> ... </Text> : null}
           </View> */}
-          <View style={styles.date}>
-            <Text style={{ color: "green", fontWeight: "500" }}>
-              {formatDate(item.createdAt)}
-            </Text>
+            <View style={styles.date}>
+              <Text style={{ color: "green", fontWeight: "500" }}>
+                {formatDate(item.createdAt)}
+              </Text>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   };
 
   return (
     <View style={styles.container}>
+      <View
+        style={{
+          width: "100%",
+          padding: 20,
+
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Search")} // Redirection vers SearchUser
+          style={{
+            marginRight: 0,
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <Text style={{
+             color: "purple", fontSize: 20, fontWeight: "600"
+          }}>Search New Friends</Text>
+          <Ionicons name="search-outline" size={25} fontWeight={20} color="purple" />
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={Friends}
         renderItem={Friend}
@@ -159,5 +195,5 @@ const styles = StyleSheet.create({
   },
   date: {
     alignItems: "flex-start",
-  },
-})
+  },
+});

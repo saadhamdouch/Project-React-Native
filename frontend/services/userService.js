@@ -1,6 +1,8 @@
 const axios = require("axios").default;
 import AsyncStorage from "@react-native-async-storage/async-storage";
-const API_URL = "https://momeetbackend.cleverapps.io/api/clients";
+// const API_URL = "https://confastservice.onrender.com/api/clients";
+const API_URL = "http://192.168.100.93:8080/api/clients";
+
 
 export const storeToken = async (jwt) => {
   const expirationTime = 1000 * 60 * 60 * 24 * 5; // 5 jours
@@ -81,9 +83,37 @@ export const getUserFriends = async (userId) => {
   }
 };
 
+export const getSearchUsers = async (searchedUser) => {
+  try{
+    const response = await axios.post(`${API_URL}/search`, {searchedUser});
+    console.log(response.data);
+    
+    if(response.data.success){
+      const users = response.data?.users;
+      if(users.length > 0){
+        return response.data.users;
+      }else{
+        return null;
+      }
+      
+    }else{
+      console.log("error dans userService lors de recherche des users");
+      const errorObject = {
+        message : response.data.message,
+        error : response.data.error,
+      }
+      return errorObject;
+    }
+  } catch (error) {
+    console.error("Failed to fetch users' friends:", error.message);
+    throw error;
+  }
+};
+
 export const createUser = async (user) => {
   try {
     const response = await axios.post(`${API_URL}/create`, user);
+    console.log(response.data);
     if (response.data.success) {
       console.log("User created successfully:", response.data.client);
       return response.data;

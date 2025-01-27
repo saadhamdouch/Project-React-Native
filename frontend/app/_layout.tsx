@@ -5,8 +5,8 @@ import "react-native-url-polyfill/auto";
 
 export default function Layout() {
   return (
-    // <NavigationContainer>
+    <NavigationContainer>
       <AppNavigator />
-    // </NavigationContainer>
+    </NavigationContainer>
   );
 }

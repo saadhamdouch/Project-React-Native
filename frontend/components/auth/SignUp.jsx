@@ -165,6 +165,7 @@ export default function SignUp() {
             onChangeText={handleChange("password")}
             onBlur={handleBlur("password")}
             secureTextEntry
+            autoCapitalize="none" 
           />
           {errors.password && touched.password && (
             <Text style={styles.error}>{errors.password}</Text>

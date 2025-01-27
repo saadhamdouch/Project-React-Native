@@ -135,7 +135,7 @@ export default function Profile({ navigation }) {
     : "Date inconnue";
 
   if (!client) {
-    return <Text>Chargement...</Text>;
+    return <Text>Loading...</Text>;
   }
 
   return (
@@ -175,12 +175,12 @@ export default function Profile({ navigation }) {
         </View>
 
         <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Informations du compte</Text>
-          <Text style={styles.infoText}>Membre depuis : {formattedDate}</Text>
+          <Text style={styles.sectionTitle}>Account Informations</Text>
+          <Text style={styles.infoText}>Member since : {formattedDate}</Text>
         </View>
 
         <View style={styles.friendsSection}>
-          <Text style={styles.sectionTitle}>Amis</Text>
+          <Text style={styles.sectionTitle}>Followers</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {friends.map((friend) => (
               <FriendItem

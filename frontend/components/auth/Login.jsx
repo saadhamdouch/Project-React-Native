@@ -94,6 +94,7 @@ export default function Login() {
         onBlur={formik.handleBlur("password")}
         secureTextEntry
         placeholderTextColor="#ccc"
+        autoCapitalize="none"
       />
       {formik.errors.password && formik.touched.password && (
         <Text style={styles.error}>{formik.errors.password}</Text>
