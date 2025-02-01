@@ -14,5 +14,5 @@
     "frontend/.expo/types/**/*.ts",
     "expo-env.d.ts",
     ".expo/types/**/*.ts"
-, "app/(tabs)/index.jsx"  ]
+, "app/(tabs)/index.jsx", "app/(tabs)/TabNavigator.jsx"  ]
 }

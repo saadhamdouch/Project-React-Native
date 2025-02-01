@@ -1,85 +1,88 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 import { useRoute } from "@react-navigation/native";
-import { useNavigation } from '@react-navigation/native';
-import io from 'socket.io-client';
-
-const urlDeployed ="https://confastservice.onrender.com";
-const url = "http://localhost:8080";
-const socket = io(urlDeployed, {
-  path: "/chat",
-  transports: ['websocket'],
-});
+import { useNavigation } from "@react-navigation/native";
+import { useSocket } from "../../app/SocketContext";
 
 const ChatRoom = () => {
+  const { socket, NewMessage, user } = useSocket(); // Assurez-vous que `socket` est extrait correctement
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [recipientId, setRecipientId] = useState('');
+  console.log("user", user);
+  const userId = user._id;
   const flatListRef = useRef(null);
 
   const route = useRoute();
-  const { friendId, friendName, userId } = route.params;
-
-  const navigation = useNavigation()
-
-  console.log('ana f chat :',friendId, userId)
+  const { friendId, friendName } = route.params;
+  const navigation = useNavigation();
 
   useEffect(() => {
-    // Créez la room quand l'écran se charge
-    const roomId = [userId, friendId].sort().join('_'); 
-    socket.emit("joinRoom", roomId);
-    //remplir le room avec les messages precedents
-    socket.on("roomMessages", (listeMsgs) =>{
-      setMessages(listeMsgs);
-    });
-    // Ecoutez les messages entrants dans cette room
-    socket.on("receiveMessage", (newMessage) => {
-      console.log("new message : ", newMessage);
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    });
+    if (socket) {
+      console.log("friendId", friendId);
+      const roomId = [userId, friendId].sort().join("_");
+      const participants = {userId, friendId};
+      socket.emit("joinRoom", {roomId, participants});
+      socket.on("roomMessages", (listeMsgs) => {
+        setMessages(listeMsgs);
+      });
 
-    return () => {
-      socket.off("receiveMessage");
-      socket.off("roomMessages");
-    };
-  }, [friendId, userId]);
+      // socket.on("newMessage", (newMessage) => {
+      //   console.log("new message : ", newMessage);
+      //   setMessages((prevMessages) => [...prevMessages, newMessage]);
+      // });
 
+      return () => {
+        // socket.off("new message");
+        socket.off("roomMessages");
+      };
+    }
+  }, [socket, NewMessage, friendId, userId]);
 
   const sendMessage = () => {
-    if (message.trim() === "") return; // Ne pas envoyer de message vide
+    if (message.trim() === "" || !socket) return;
 
-    const roomId = [userId, friendId].sort().join('_'); // Room basée sur les ID des utilisateurs
-    const newMessage = {
-      senderId: userId,
-      receiverId: friendId,
-      message: message,
-      timestamp: new Date().toISOString(),
+    const newUserMessage = {
+      id: friendId, // ID du destinataire
+      content: message,
+      sender: userId, // ID de l'expéditeur
+      timestamp: new Date().toString(),
+      isRead: false,
     };
 
-    // Émettre le message à la room via socket
-    socket.emit("sendMessage", { roomId, newMessage });
-
-    // Ajout du message localement
-    // setMessages((prevMessages) => [...prevMessages, newMessage]);
+    // Émettre l'événement "new message" via le socket
+    socket.emit("new message", { newUserMessage });
+    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
     setMessage(""); // Effacer le champ de message après envoi
   };
 
-  const HandlCall = ()=>{
-    
+  useEffect(() => {
+    if (NewMessage) {
+        console.log("new message received : ", NewMessage);
+        setMessages((prevMessages) => [...prevMessages, NewMessage]);
+    }
+  }, [NewMessage]);
+
+  const HandlCall = () => {
     navigation.navigate("CallPage", {
       friendId: friendId,
       friendName: friendName,
       userId: userId,
-    })
-
-    console.log('calling...')
-  }
+    });
+    console.log("calling...");
+  };
 
   const formatDate = (createdAt) => {
     const date = new Date(createdAt);
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Les mois commencent à 0
-    const year = String(date.getFullYear()).slice(2); // Récupère les deux derniers chiffres de l'année
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear()).slice(2);
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
 
@@ -87,22 +90,39 @@ const ChatRoom = () => {
   };
 
   const MessageItem = ({ item }) => {
-   const isSender = item.sender == userId;
-    // const isSender = true;
+    if (!item) return null;
+
+    const isSender = item.sender === userId;
+
     return (
-      <View style={[styles.messageContainer, isSender ? styles.senderMessage : styles.receiverMessage]}>
-        <Text style={isSender ? styles.messageContentSender : styles.messageContentReceiver}>{item.content}</Text>
-        <Text style={isSender ? styles.messageContentSender : styles.messageContentReceiver}>{formatDate(item.createdAt)}</Text>
+      <View
+        style={[
+          styles.messageContainer,
+          isSender ? styles.senderMessage : styles.receiverMessage,
+        ]}
+      >
+        <Text
+          style={
+            isSender ? styles.messageContentSender : styles.messageContentReceiver
+          }
+        >
+          {item.content}
+        </Text>
+        <Text
+          style={
+            isSender ? styles.messageContentSender : styles.messageContentReceiver
+          }
+        >
+          {formatDate(item.createdAt)}
+        </Text>
       </View>
     );
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      if (flatListRef.current) {
-        flatListRef.current.scrollToEnd({ animated: false });
-      }
-    }, 1000);
+    if (flatListRef.current) {
+      flatListRef.current.scrollToEnd({ animated: true });
+    }
   }, [messages]);
 
   return (
@@ -111,7 +131,7 @@ const ChatRoom = () => {
         data={messages}
         ref={flatListRef}
         renderItem={({ item }) => <MessageItem item={item} />}
-        keyExtractor={(item, index) => item._id || item.id || index.toString()}
+        keyExtractor={(item, index) => `${item._id || item.id || index}-${messages.length}`}
         showsVerticalScrollIndicator={false}
       />
       <View style={styles.inputContainer}>
@@ -120,11 +140,11 @@ const ChatRoom = () => {
           placeholder="Type your message..."
           placeholderTextColor="#999"
           value={message}
-          onChangeText={(text) => { setMessage(text) }}
+          onChangeText={(text) => setMessage(text)}
         />
         <TouchableOpacity onPress={HandlCall} style={styles.sendButton}>
-          <Text style={styles.sendButtonText}>call</Text>
-      </TouchableOpacity>
+          <Text style={styles.sendButtonText}>Call</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
@@ -137,7 +157,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: "#FAFAFA", // Couleur claire et propre
+    backgroundColor: "#FAFAFA",
   },
   messageContainer: {
     maxWidth: "75%",
@@ -148,7 +168,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2, // Ombre sur Android
+    elevation: 2,
   },
   senderMessage: {
     alignSelf: "flex-end",
@@ -165,31 +185,10 @@ const styles = StyleSheet.create({
   messageContentSender: {
     fontSize: 16,
     color: "#FFFFFF",
-    fontFamily: "System",
   },
   messageContentReceiver: {
     fontSize: 16,
-    fontFamily: "System",
-  },
-  messageDate: {
-    fontSize: 12,
-    color: "#999",
-    marginTop: 5,
-    textAlign: "right", // Alignement à droite pour la date
-  },
-  sendButton: {
-    backgroundColor: "#3897F0", // Bleu Instagram
-    padding: 12,
-    borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 50,
-    height: 50,
-    elevation: 3, // Légère ombre pour Android
-  },
-  sendButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: "#000",
   },
   inputContainer: {
     flexDirection: "row",
@@ -214,9 +213,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 1, // Légère ombre
+    elevation: 1,
+  },
+  sendButton: {
+    backgroundColor: "#3897F0",
+    padding: 12,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    width: 50,
+    height: 50,
+    elevation: 3,
+  },
+  sendButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
 
-
-export default ChatRoom
+export default ChatRoom;

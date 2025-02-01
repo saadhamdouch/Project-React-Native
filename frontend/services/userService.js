@@ -1,7 +1,7 @@
 const axios = require("axios").default;
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // const API_URL = "https://confastservice.onrender.com/api/clients";
-const API_URL = "http://192.168.100.93:8080/api/clients";
+const API_URL = "http://192.168.2.17:8080/api/clients";
 
 
 export const storeToken = async (jwt) => {
