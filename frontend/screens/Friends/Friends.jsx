@@ -8,45 +8,15 @@ import {
   Image,
 } from "react-native";
 import * as api from "../../services/userService";
-import io from "socket.io-client";
 import { Ionicons } from "@expo/vector-icons";
-
-const urlDeployed = "https://confastservice.onrender.com";
-const url = "http://localhost:8080";
-const socket = io(urlDeployed, {
-  path: "/chat",
-  transports: ["websocket"],
-});
+import { useSocket } from "../../app/SocketContext";
 
 const Friends = ({ navigation }) => {
+  const { socket, NewMessage, user } = useSocket(); // Assurez-vous que `socket` est extrait correctement
+  console.log("user dans FriendScreen :", user);
   const [Friends, setFriends] = useState([]);
-  const [userId, setUserId] = useState("");
-  const [user, setUser] = useState({});
-  useEffect(() => {
-    // Se connecter au serveur
-    socket.on("connection", () => {
-      console.log("Connecté au socket serveur");
-      setUserId(socket.id);
-    });
-
-    // Récupérer les contacts depuis l'API (à ajuster selon votre backend)
-    getUser();
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
-  // Fonction pour récupérer les données des utilisateurs
-  const getUser = async () => {
-    try {
-      const getUserByToken = await api.getUserByToken();
-      setUser(getUserByToken);
-      setUserId(getUserByToken._id);
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    }
-  };
+  const userId = user._id;
+  // const [user, setUser] = useState({});
 
   const handleNavigation = (item, page) => {
     if (page === "chat") {
@@ -62,9 +32,9 @@ const Friends = ({ navigation }) => {
       });
     }
 
-    const roomId = [userId, item.id].sort().join("");
-    socket.emit("joinRoom", roomId);
-    console.log(`Vous avez rejoint la room: ${roomId}`);
+    // const roomId = [userId, item.id].sort().join("");
+    // socket.emit("joinRoom", roomId);
+    // console.log(`Vous avez rejoint la room: ${roomId}`);
   };
 
   const getFriend = async () => {
@@ -73,9 +43,11 @@ const Friends = ({ navigation }) => {
       setFriends(fetchedFriends);
     }
   };
+
   useEffect(() => {
     getFriend();
-  }, [userId != ""]);
+  }, [userId]); // Correction de la dépendance
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, "0"); // Ajoute un zéro au début si le jour est < 10
@@ -85,6 +57,8 @@ const Friends = ({ navigation }) => {
   };
 
   const Friend = ({ item }) => {
+    if (!item) return null; // Vérification de `item`
+
     return (
       <View style={styles.card}>
         <TouchableOpacity
@@ -105,12 +79,6 @@ const Friends = ({ navigation }) => {
             <View style={styles.name}>
               <Text style={{ fontWeight: "600" }}>{item.email}</Text>
             </View>
-            {/* <View style={{ flexDirection: "row" }}>
-            <Text style={{ fontWeight: "600" }}>
-              Last Message : {item.lastMessage.slice(0, 25)}
-            </Text>
-            {item.lastMessage.length > 25 ? <Text> ... </Text> : null}
-          </View> */}
             <View style={styles.date}>
               <Text style={{ color: "green", fontWeight: "500" }}>
                 {formatDate(item.createdAt)}
@@ -128,7 +96,6 @@ const Friends = ({ navigation }) => {
         style={{
           width: "100%",
           padding: 20,
-
         }}
       >
         <TouchableOpacity
@@ -142,10 +109,21 @@ const Friends = ({ navigation }) => {
             gap: 10,
           }}
         >
-          <Text style={{
-             color: "purple", fontSize: 20, fontWeight: "600"
-          }}>Search New Friends</Text>
-          <Ionicons name="search-outline" size={25} fontWeight={20} color="purple" />
+          <Text
+            style={{
+              color: "purple",
+              fontSize: 20,
+              fontWeight: "600",
+            }}
+          >
+            Search New Friends
+          </Text>
+          <Ionicons
+            name="search-outline"
+            size={25}
+            fontWeight={20}
+            color="purple"
+          />
         </TouchableOpacity>
       </View>
       <FlatList

@@ -1,25 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import Home from "../../screens/Home/Home";
 import Profile from "../../screens/Profile/Profile";
 import Friends from "../../screens/Friends/Friends";
 import FriendsStack from "./FriendsNavigator";
-import ProfileStack from "./ProfileNavigator"
+import ProfileStack from "./ProfileNavigator";
 import { Ionicons } from "@expo/vector-icons";
 import "react-native-gesture-handler";
 import InteractionsStack from "./InteractionsNavigator";
+import io from "socket.io-client";
 
-// Définir le type pour les noms des routes
-type TabParamList = {
-  Home: undefined;
-  Profile: undefined;
-  Friends: undefined;
-};
+const urlDeployed = "https://confastservice.onrender.com";
+const url = "http://localhost:8080";
+const socket = io(urlDeployed, {
+  path: "/chat",
+  transports: ["websocket"],
+});
 
-const Tab = createBottomTabNavigator<TabParamList>();
+const Tab = createBottomTabNavigator();
 
-export default function TabNavigator() {
+const TabNavigator = () => {
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    // Se connecter au serveur
+    socket.on("connection", () => {
+      console.log("Connecté au socket serveur");
+      setUserId(socket.id);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -31,15 +46,7 @@ export default function TabNavigator() {
         tabBarStyle: {
           backgroundColor: "#E2E2E2", // Couleur de la tabulation
         },
-        tabBarIcon: ({
-          focused,
-          color,
-          size,
-        }: {
-          focused: boolean;
-          color: string;
-          size: number;
-        }) => {
+        tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
@@ -63,4 +70,6 @@ export default function TabNavigator() {
       />
     </Tab.Navigator>
   );
-}
+};
+
+export default TabNavigator;
