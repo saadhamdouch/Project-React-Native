@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,26 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
 } from "react-native";
 // import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import * as api from "../../services/userService";
 import * as postApi from "../../services/postService";
+import axios from 'axios';
+import Post from './components/post'
 
 const { width, height } = Dimensions.get("window");
+
+const getPosts = async () => {
+  try {
+    const response = await axios.get('https://momeetbackend.cleverapps.io/api/posts');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch posts:', error);
+    return [];
+  }
+};
 
 export default function Home({ navigation }) {
 
@@ -41,11 +54,75 @@ export default function Home({ navigation }) {
     );
   };
 
-  // const navigation = useNavigation();
+  const UsersContain = () => {
+    return (
+      <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false} 
+      style={usersStyles.scrollContainer}
+    >
+      <View style={usersStyles.userContainer}>
+        {users?.map((user, index) => (
+          <View key={user.id || index} style={usersStyles.userItem}>
+            <View style={usersStyles.avatarContainer}>
+              <View style={usersStyles.avatarInnerContainer}>
+              <Image
+                  source={
+                    user.avatar 
+                      ? { uri: user.avatar } 
+                      : require('../../assets/images/profileImage.jpg')
+                  }
+                  style={usersStyles.avatar}
+                  resizeMode="cover"
+                />
+              </View>
+            </View>
+            <Text style={usersStyles.username}>
+              {user.username.length > 11 ? `${user.username.substring(0, 11)}..` : user.username}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+    );
+  };
+
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState(null);
+  const [users , setUsers] = useState([])
+  const [error, setError] = useState(null);
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const localUsers = await api.getAllUsers();
+      setUsers(localUsers);
+    } catch (err) {
+      console.error('Failed to fetch users:', err);
+      setError('Unable to fetch users.');
+    }
+  }, []);
+
+  const fetchPosts = useCallback(async () => {
+    try {
+      const postsData = await getPosts();
+      setPosts(postsData);
+    } catch (err) {
+      console.error('Failed to fetch posts:', err);
+      setError('Unable to fetch posts.');
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      await fetchUsers();
+      await fetchPosts();
+      setLoading(false);
+    };
+    fetchData();
+  }, [fetchUsers, fetchPosts]);
 
   const isConnexionExpired = async () => {
     const isExpired = await api.checkTokenExpiration();
@@ -64,18 +141,6 @@ export default function Home({ navigation }) {
     }
   };
 
-  const fetchPosts = async () => {
-    try {
-      const posts = await postApi.getAllPosts();
-      setPosts(posts);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
   useEffect(() => {
     isConnexionExpired();
     fetchPosts();
@@ -86,18 +151,47 @@ export default function Home({ navigation }) {
     setRefreshing(true);
     fetchPosts();
   };
-  console.log(user);
-  const renderItem = ({ item }) => (
-    <View style={styles.postContainer}>
-      <View style={styles.postHeader}>
-        <Image source={{ uri: item.author.avatar }} style={styles.avatar} />
-        <Text style={styles.authorName}>{item.author.username}</Text>
-      </View>
-      <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-      <Text style={styles.postTitle}>{item.title}</Text>
-      <Text style={styles.postDescription}>{item.description}</Text>
-    </View>
-  );
+  
+  const transformPosts = useCallback(() => {
+    if (!users.length || !posts.length) return [];
+    return posts.map((post, index) => {
+      const user = users.find((user) => user._id === post.userId);
+      return {
+        id: index + 1,
+        postId: post._id,
+        user: {
+          name: user?.username || 'Unknown',
+          avatar: user?.avatar || '/NoProfile.png',
+          verified: user?.verified || false,
+        },
+        video: post.mediaType === 'videos' 
+          ? `https://momeetbackend.cleverapps.io/api/${post.imageUrl.replace(/\\/g, '/')}` 
+          : null,
+        image: post.mediaType === 'images' 
+          ? `https://momeetbackend.cleverapps.io/api/${post.imageUrl.replace(/\\/g, '/')}` 
+          : null,
+        likes: post?.likes,
+        saved: post?.saved,
+        caption: post.caption || '',
+        comments: post.comments,
+        timeAgo: post.timeAgo || 'Just now',
+      };
+    });
+  }, [posts, users]);
+  
+  const transformedPosts = transformPosts();
+
+  // const renderItem = ({ item }) => (
+  //   <View style={styles.postContainer}>
+  //     <View style={styles.postHeader}>
+  //       <Image source={{ uri: item.author?.avatar }} style={styles.avatar} />
+  //       <Text style={styles.authorName}>{item.author.username}</Text>
+  //     </View>
+  //     <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+  //     <Text style={styles.postTitle}>{item.title}</Text>
+  //     <Text style={styles.postDescription}>{item.description}</Text>
+  //   </View>
+  // );
 
   // const renderLiveItem = ({ item }) => (
   //   <TouchableOpacity style={styles.liveItem}>
@@ -107,10 +201,38 @@ export default function Home({ navigation }) {
   //   </TouchableOpacity>
   // );
 
+  const dummyData = [
+    {
+      id: "1",
+      user: {
+        name: "johndoe",
+        avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+      },
+      image: "https://picsum.photos/id/1/500/500",
+      likes: 1234,
+      caption: "Beautiful sunset!",
+      comments: 42,
+    },
+    {
+      id: "2",
+      user: {
+        name: "janedoe",
+        avatar: "https://randomuser.me/api/portraits/women/1.jpg",
+      },
+      image: "https://picsum.photos/id/2/500/500",
+      likes: 5678,
+      caption: "Delicious food!",
+      comments: 98,
+    },
+    // Add more dummy posts here
+  ]
+
   return (
     <View style={styles.container}>
       <TopBar />
-      {loading ? (
+      <InstagramFeed dummyData={dummyData} />
+      {/* post={post} user={user} */}
+      {/* {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <FlatList
@@ -122,10 +244,15 @@ export default function Home({ navigation }) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         />
-      )}
+      )} */}
     </View>
   );
 }
+
+const InstagramFeed = ({dummyData}) => (
+  <FlatList data={dummyData} renderItem={({ item }) => <Post post={item} />} keyExtractor={(item) => item.id} />
+)
+
 
 const styles = StyleSheet.create({
   container: {
@@ -224,5 +351,53 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     gap: 20,
+  },
+});
+
+
+const usersStyles = StyleSheet.create({
+  scrollContainer: {
+    marginTop: 50,
+    marginBottom: 8,
+  },
+  userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 110,
+    spaceX: 5, // Pour React Native, on utilise `margin` entre les éléments au lieu de `space-x`.
+  },
+  userItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginHorizontal: 10, // Remplacement pour space-x
+  },
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    padding: 1,
+    backgroundColor: 'linear-gradient(45deg, purple, pink, orange)', // Linear gradients nécessitent des bibliothèques comme react-native-linear-gradient.
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarInnerContainer: {
+    backgroundColor: 'white',
+    borderRadius: 40,
+    padding: 0.5,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 40,
+  },
+  username: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'gray',
+    marginTop: 4,
   },
 });
