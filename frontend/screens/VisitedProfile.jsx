@@ -1,182 +1,183 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
-import { useRoute } from "@react-navigation/native";
-import * as api from "../services/userService";
-import * as notificationService from "../services/notificationService";
+import { useEffect, useState, useRef } from "react"
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Animated, SafeAreaView } from "react-native"
+import { Ionicons } from "@expo/vector-icons"
+import { useRoute } from "@react-navigation/native"
+import * as api from "../services/userService"
+import * as notificationService from "../services/notificationService"
 
 const VisitedProfile = ({ navigation }) => {
-  const [user, setUser] = useState({});
-  const [isSendingRequest, setIsSendingRequest] = useState(false);
-  const [isFriend, setIsFriend] = useState(false);
-  const [isRequestSender, setIsRequestSender] = useState(false);
-  const route = useRoute();
-  const friend = route.params?.friend;
-  const userId = route.params?.clientId;
-  if (!friend) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text>Aucune information disponible</Text>
-      </View>
-    );
-  }
+  const [user, setUser] = useState(null)
+  const [isSendingRequest, setIsSendingRequest] = useState(false)
+  const [isFriend, setIsFriend] = useState(false)
+  const [isRequestSender, setIsRequestSender] = useState(false)
+  const [loading, setLoading] = useState(true) // Ajout de loading pour éviter plusieurs appels
+  const route = useRoute()
+  const friend = route.params?.friend
+  const userId = route.params?.clientId
+  const fadeAnim = useRef(new Animated.Value(0)).current // Utilisation de useRef pour éviter le re-render
+
+  useEffect(() => {
+    if (!userId || !friend?._id) return
+
+    setLoading(true) // Empêche les appels multiples
+    getCurrentUser()
+    checkFriendshipStatus()
+    setLoading(false) // Termine le chargement après la récupération des données
+  }, [userId, friend?._id]) // Suppression de fadeAnim pour éviter la boucle infinie
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start()
+  }, []) // Exécuter une seule fois au montage
+
   const handleNavigation = () => {
     navigation.navigate("Chat", {
       friendId: friend._id,
       friendName: friend.username,
       userId,
     });
-  };
+  }
 
   const handleDeleteRequest = async () => {
-    const isDeleted = await notificationService.deleteFriendRequest(
-      userId,
-      friend._id
-    );
+    const isDeleted = await notificationService.deleteFriendRequest(userId, friend._id)
     if (isDeleted) {
-      console.log("Demande d'ami annulée avec succès");
-      setIsSendingRequest(false);
+      console.log("Demande d'ami annulée avec succès")
+      setIsSendingRequest(false)
     }
-  };
+  }
 
   const handleSendRequest = async () => {
-    const notif = {
-      sender: userId,
-      receiver: friend._id,
-      type: "sendFriendRequest",
-    };
-    const isRequestSent = await notificationService.createNotification(notif);
+    const notif = { sender: userId, receiver: friend._id, type: "sendFriendRequest" }
+    const isRequestSent = await notificationService.createNotification(notif)
     if (isRequestSent) {
-      setIsSendingRequest(true);
+      setIsSendingRequest(true)
+      setIsRequestSender(true)
     }
-  };
+  }
 
   const handleRefollow = async () => {
-    const notif = {
-      sender: userId,
-      receiver: friend._id,
-      type: "acceptedFriendRequest",
-    };
-    const isRequestAccepted = await notificationService.createNotification(
-      notif
-    );
+    const notif = { sender: userId, receiver: friend._id, type: "acceptedFriendRequest" }
+    const isRequestAccepted = await notificationService.createNotification(notif)
     if (isRequestAccepted) {
-      setIsFriend(true);
+      setIsFriend(true)
     }
-  };
+  }
 
   const checkFriendshipStatus = async () => {
-    const response = await notificationService.checkFriendChipStatus(
-      userId,
-      friend._id
-    );
-    if (response.status === "pending") {
-      setIsSendingRequest(true);
-      if (response.sender === userId) {
-        setIsRequestSender(true);
+    try {
+      const response = await notificationService.checkFriendChipStatus(userId, friend._id)
+      if (response.status === "pending") {
+        setIsSendingRequest(true)
+        if (response.sender === userId) setIsRequestSender(true)
+      } else if (response.status === "friends") {
+        setIsFriend(true)
       }
-    } else if (response.status === "friends") {
-      setIsFriend(true);
+    } catch (error) {
+      console.error("Erreur lors de la vérification de l'amitié :", error)
     }
-  };
-
-  useEffect(() => {
-    checkFriendshipStatus();
-  }, [userId, friend._id]);
+  }
 
   const getCurrentUser = async () => {
-    const user = await api.getUserById(userId);
-    if (user) {
-      setUser(user);
+    try {
+      const fetchedUser = await api.getUserById(userId)
+      if (fetchedUser) setUser(fetchedUser)
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'utilisateur :", error)
     }
-  };
+  }
 
-  useEffect(() => {
-    getCurrentUser();
-  }, [userId]);
-
-  console.log("current user : ", user);
-  console.log("current friend : ", friend);
-
-  if (!user || !friend) {
+  if (!friend || loading) {
     return (
       <View style={styles.emptyContainer}>
-        <Text>Chargement...</Text>
+        <Text>{loading ? "Chargement..." : "Aucune information disponible"}</Text>
       </View>
-    );
+    )
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: friend.avatar || "../assets/images/profileImage.jpg",
-          }}
-          style={styles.avatar}
-        />
-        <Text style={styles.username}>{friend.username}</Text>
-        <Text style={styles.email}>{friend.email}</Text>
-        <Text style={styles.email}>{friend.adresse}</Text>
-          
-        {isFriend ? // Ne rien afficher si c'est déjà un ami
-        null : isSendingRequest ? (
-          isRequestSender ? (
-            <>
-              <Text style={styles.chatButtonText}>Demande envoyée</Text>
-              <TouchableOpacity onPress={handleDeleteRequest}>
-                <Text style={styles.annulerInvitation}>Annuler la demande</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity
-              style={styles.FollowButton}
-              onPress={handleRefollow}
-            >
-              <Text style={styles.chatButtonText}>Follow back</Text>
-            </TouchableOpacity>
-          )
-        ) : (
-          <TouchableOpacity
-            style={styles.FollowButton}
-            onPress={handleSendRequest}
-          >
-            <Text style={styles.chatButtonText}>Follow</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
+          <Image source={{ uri: friend.avatar || "https://via.placeholder.com/150" }} style={styles.avatar} />
+          <Text style={styles.username}>{friend.username}</Text>
+          <Text style={styles.email}>{friend.email}</Text>
+          <Text style={styles.address}>{friend.adresse}</Text>
+
+          {!isFriend && (
+            <View style={styles.actionContainer}>
+              {isSendingRequest ? (
+                isRequestSender ? (
+                  <>
+                    <Text style={styles.requestSent}>Demande envoyée</Text>
+                    <TouchableOpacity style={styles.cancelButton} onPress={handleDeleteRequest}>
+                      <Text style={styles.cancelButtonText}>Annuler la demande</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <TouchableOpacity style={styles.followButton} onPress={handleRefollow}>
+                    <Ionicons name="person-add" size={20} color="#fff" />
+                    <Text style={styles.buttonText}>Follow back</Text>
+                  </TouchableOpacity>
+                )
+              ) : (
+                <TouchableOpacity style={styles.followButton} onPress={handleSendRequest}>
+                  <Ionicons name="person-add-outline" size={20} color="#fff" />
+                  <Text style={styles.buttonText}>Follow</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </Animated.View>
+
+        <View style={styles.infoCard}>
+          <Ionicons name="information-circle-outline" size={24} color="#333" style={styles.cardIcon} />
+          <Text style={styles.sectionTitle}>Informations du compte</Text>
+          <Text style={styles.infoText}>Membre depuis : {new Date(friend.createdAt).toLocaleDateString()}</Text>
+        </View>
+
+        <View style={styles.infoCard}>
+          <Ionicons name="people-outline" size={24} color="#333" style={styles.cardIcon} />
+          <Text style={styles.sectionTitle}>Followers</Text>
+          <Text style={styles.infoText}>{friend.friends.length} Follower(s)</Text>
+        </View>
+
+        {isFriend && (
+          <TouchableOpacity style={styles.chatButton} onPress={handleNavigation}>
+            <Ionicons name="chatbubble-outline" size={24} color="#fff" />
+            <Text style={styles.buttonText}>Démarrer le chat</Text>
           </TouchableOpacity>
         )}
-      </View>
+      </ScrollView>
+    </SafeAreaView>
+  )
+}
 
-      <View style={styles.infoSection}>
-        <Text style={styles.sectionTitle}>Informations du compte</Text>
-        <Text style={styles.infoText}>
-          Membre depuis : {new Date(friend.createdAt).toLocaleDateString()}
-        </Text>
-      </View>
 
-      <View style={styles.friendsSection}>
-        <Text style={styles.sectionTitle}>Followers</Text>
-        <Text style={styles.infoText}>{friend.friends.length} Follower(s)</Text>
-      </View>
-
-      {isFriend && (
-        <TouchableOpacity style={styles.chatButton} onPress={handleNavigation}>
-          <Text style={styles.chatButtonText}>Démarrer le chat</Text>
-        </TouchableOpacity>
-      )}
-    </ScrollView>
-  );
-};
+export default VisitedProfile
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: "#f5f5f5" },
+  container: { flex: 1 },
+  contentContainer: { paddingBottom: 20 },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  header: { alignItems: "center", padding: 30, backgroundColor: "#fff", borderBottomLeftRadius: 30, borderBottomRightRadius: 30, elevation: 5 },
+  avatar: { width: 120, height: 120, borderRadius: 60, marginBottom: 20, borderWidth: 3, borderColor: "#3498db" },
+  username: { fontSize: 28, fontWeight: "bold", color: "#333", marginBottom: 5 },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold", marginLeft: 10 },
+
+
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+  },
+  contentContainer: {
+    paddingBottom: 20,
   },
   emptyContainer: {
     flex: 1,
@@ -185,83 +186,107 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
-  logoutButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
+    padding: 30,
+    backgroundColor: "#fff",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   avatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: 10,
+    marginBottom: 20,
     borderWidth: 3,
-    borderColor: "#4169E1",
+    borderColor: "#3498db",
   },
   username: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 5,
   },
   email: {
     fontSize: 16,
-    paddingBottom: 10,
     color: "#666",
+    marginBottom: 5,
   },
-  infoSection: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
+  address: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 20,
   },
-  friendsSection: {
+  actionContainer: {
+    alignItems: "center",
+  },
+  requestSent: {
+    color: "#666",
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  cancelButton: {
+    padding: 10,
+  },
+  cancelButtonText: {
+    color: "#e74c3c",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  followButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#3498db",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 10,
+  },
+  infoCard: {
+    backgroundColor: "#fff",
+    margin: 15,
     padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
+  },
+  cardIcon: {
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
-    color: "#4169E1",
+    color: "#333",
   },
   infoText: {
     fontSize: 16,
-    color: "#333",
+    color: "#666",
   },
   chatButton: {
-    backgroundColor: "#4169E1",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2ecc71",
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 25,
     margin: 20,
-    alignItems: "center",
-    marginTop: 30,
   },
-  annulerInvitation: {
-    color: "red",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  FollowButton: {
-    backgroundColor: "black",
-    paddingRight: 20,
-    paddingLeft: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
-    borderRadius: 10,
-    margin: 20,
-    alignItems: "center",
-    marginTop: 30,
-  },
-  chatButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});
-
-export default VisitedProfile;
+})

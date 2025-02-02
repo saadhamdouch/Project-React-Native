@@ -2,7 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import io from "socket.io-client";
 import * as api from "../services/userService";
 
-const SOCKET_URL = "http://192.168.100.52:8080"; // ou votre URL de production
+ const SOCKET_URL = "https://confastservice.onrender.com";
+// const SOCKET_URL = "http://localhost:8080";
 
 // Création du contexte
 const SocketContext = createContext(null);
