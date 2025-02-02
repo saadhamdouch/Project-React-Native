@@ -24,50 +24,56 @@ const ChatRoom = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (socket) {
-      console.log("friendId", friendId);
-      const roomId = [userId, friendId].sort().join("_");
-      const participants = {userId, friendId};
-      socket.emit("joinRoom", {roomId, participants});
-      socket.on("roomMessages", (listeMsgs) => {
-        setMessages(listeMsgs);
-      });
-
-      // socket.on("newMessage", (newMessage) => {
-      //   console.log("new message : ", newMessage);
-      //   setMessages((prevMessages) => [...prevMessages, newMessage]);
-      // });
-
-      return () => {
-        // socket.off("new message");
-        socket.off("roomMessages");
-      };
+    if (socket && NewMessage) {
+      console.log("roomMessages", NewMessage);
+  
+      // Vérifier si le message existe déjà dans la liste
+      if (!messages.some(msg => msg.timestamp === NewMessage.timestamp)) {
+        const localmessage = {
+          id: NewMessage.id,
+          content: NewMessage.text,
+          sender: NewMessage.sender,
+          timestamp: NewMessage.timestamp,
+          isRead: false,
+        };
+  
+        setMessages((prevMessages) => [...prevMessages, localmessage]);
+      }
     }
-  }, [socket, NewMessage, friendId, userId]);
+  }, [socket, NewMessage]);
+  
 
   const sendMessage = () => {
     if (message.trim() === "" || !socket) return;
 
     const newUserMessage = {
       id: friendId, // ID du destinataire
+      text: message,
+      sender: userId, // ID de l'expéditeur
+      timestamp: new Date().toISOString(),
+      isRead: false,
+    };
+
+    const localmessage = {
+      id: friendId, // ID du destinataire
       content: message,
       sender: userId, // ID de l'expéditeur
-      timestamp: new Date().toString(),
+      timestamp: new Date().toISOString(),
       isRead: false,
     };
 
     // Émettre l'événement "new message" via le socket
     socket.emit("new message", { newUserMessage });
-    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
+    setMessages((prevMessages) => [...prevMessages, localmessage]);
     setMessage(""); // Effacer le champ de message après envoi
   };
 
-  useEffect(() => {
-    if (NewMessage) {
-        console.log("new message received : ", NewMessage);
-        setMessages((prevMessages) => [...prevMessages, NewMessage]);
-    }
-  }, [NewMessage]);
+  // useEffect(() => {
+  //   if (NewMessage) {
+  //       console.log("new message received : ", NewMessage);
+  //       setMessages((prevMessages) => [...prevMessages, NewMessage]);
+  //   }
+  // }, [NewMessage]);
 
   const HandlCall = () => {
     navigation.navigate("CallPage", {
@@ -113,7 +119,7 @@ const ChatRoom = () => {
             isSender ? styles.messageContentSender : styles.messageContentReceiver
           }
         >
-          {formatDate(item.createdAt)}
+          {formatDate(item.timestamp)}
         </Text>
       </View>
     );
@@ -131,7 +137,7 @@ const ChatRoom = () => {
         data={messages}
         ref={flatListRef}
         renderItem={({ item }) => <MessageItem item={item} />}
-        keyExtractor={(item, index) => `${item._id || item.id || index}-${messages.length}`}
+        keyExtractor={(item) => item._id || item.id || Math.random().toString(36).substring(7)}
         showsVerticalScrollIndicator={false}
       />
       <View style={styles.inputContainer}>
