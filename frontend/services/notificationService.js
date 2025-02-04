@@ -1,6 +1,6 @@
 const axios = require("axios").default;
 // const API_URL = "https://confastservice.onrender.com/api/notifications";
-const API_URL = "http://192.168.100.52:8080/api/notifications";
+const API_URL = "http://192.168.8.158:8080/api/notifications";
 
 export const createNotification = async (notification) => {
   try {
