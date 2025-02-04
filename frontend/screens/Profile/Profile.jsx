@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import * as api from "../../services/userService";
-import Icon from "react-native-vector-icons/FontAwesome";
-import AddPostIcon from "react-native-vector-icons/MaterialIcons";
-import DeleteAccountIcon from "react-native-vector-icons/MaterialCommunityIcons";
+import { useState, useEffect } from "react"
+import { View, Text, Image, ScrollView, Dimensions, TouchableOpacity, StyleSheet } from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context"
+import * as api from "../../services/userService"
+import Icon from "react-native-vector-icons/FontAwesome"
+import AddPostIcon from "react-native-vector-icons/MaterialIcons"
+import DeleteAccountIcon from "react-native-vector-icons/MaterialCommunityIcons"
+import AddPostDialog from "./AddPostDialog"
 
 const posts = [
   { id: "1", imageUrl: "https://picsum.photos/200/300", description: "Beautiful sunset", height: 300 },
@@ -21,131 +14,118 @@ const posts = [
   { id: "4", imageUrl: "https://picsum.photos/200/250", height: 250 },
   { id: "5", imageUrl: "https://picsum.photos/200/350", description: "City lights", height: 350 },
   { id: "6", imageUrl: "https://picsum.photos/200/280", height: 280 },
-];
+]
 
 const FriendItem = ({ friend, onPress }) => (
   <TouchableOpacity onPress={onPress}>
     <View style={styles.friendItem}>
       <Image
         source={{
-          uri: friend.avatar
-            ? friend.avatar
-            : "../../assets/images/profileImage.jpg",
+          uri: friend.avatar ? friend.avatar : "../../assets/images/profileImage.jpg",
         }}
         style={styles.friendAvatar}
       />
       <Text style={styles.friendName}>{friend.username}</Text>
     </View>
   </TouchableOpacity>
-);
+)
 
 const PostItem = ({ item, width }) => (
-  <View style={[styles.postItem, { width }]}> 
-    <Image
-      source={{ uri: item.imageUrl }}
-      style={[styles.postImage, { width, height: item.height }]}
-    />
+  <View style={[styles.postItem, { width }]}>
+    <Image source={{ uri: item.imageUrl }} style={[styles.postImage, { width, height: item.height }]} />
     {item.description && (
       <View style={styles.descriptionContainer}>
         <Text style={styles.postDescription}>{item.description}</Text>
       </View>
     )}
   </View>
-);
+)
 
 const MasonryList = ({ posts, numColumns, containerWidth }) => {
-  const columnWidth = containerWidth / numColumns;
+  const columnWidth = containerWidth / numColumns
 
-  const columns = Array.from({ length: numColumns }, () => []);
+  const columns = Array.from({ length: numColumns }, () => [])
   posts.forEach((post, index) => {
-    columns[index % numColumns].push(post);
-  });
+    columns[index % numColumns].push(post)
+  })
 
   return (
     <View style={styles.masonryContainer}>
       {columns.map((column, columnIndex) => (
-        <View
-          key={columnIndex}
-          style={[styles.masonryColumn, { width: columnWidth }]}
-        >
+        <View key={columnIndex} style={[styles.masonryColumn, { width: columnWidth }]}>
           {column.map((post) => (
             <PostItem key={post.id} item={post} width={columnWidth} />
           ))}
         </View>
       ))}
     </View>
-  );
-};
+  )
+}
 
 export default function Profile({ navigation }) {
-  const [showAddPostModal, setShowAddPostModal] = useState(false);
-  const [client, setClient] = useState(null);
-  const [friends, setFriends] = useState([]);
+  const [showAddPostDialog, setShowAddPostDialog] = useState(false)
+  const [client, setClient] = useState(null)
+  const [friends, setFriends] = useState([])
 
   const findOne = async () => {
     try {
-      const user = await api.getUserByToken();
+      const user = await api.getUserByToken()
       if (!user) {
-        console.error("User undefined");
-        return;
+        console.error("User undefined")
+        return
       }
-      setClient(user);
+      setClient(user)
     } catch (error) {
-      console.error("Error fetching user:", error);
+      console.error("Error fetching user:", error)
     }
-  };
+  }
 
   const handleNavigate = (friend) => {
     navigation.navigate("VisitedProfile", {
       friend,
-      clientId : client._id
-    });
-  };
+      clientId: client._id,
+    })
+  }
 
   useEffect(() => {
-    findOne();
-  }, []);
+    findOne()
+  }, [])
 
   const getFriend = async () => {
     if (client?._id) {
       try {
-        const fetchedFriends = await api.getUserFriends(client._id);
-        setFriends(fetchedFriends);
+        const fetchedFriends = await api.getUserFriends(client._id)
+        setFriends(fetchedFriends)
       } catch (error) {
-        console.error("Error fetching friends:", error);
+        console.error("Error fetching friends:", error)
       }
     }
-  };
+  }
 
   useEffect(() => {
-    getFriend();
-  }, [client?._id]);
+    getFriend()
+  }, [client?._id])
 
   const handleLogout = async () => {
-    const isLoggedout = await api.logout();
+    const isLoggedout = await api.logout()
     if (isLoggedout) {
-      navigation.navigate("Login");
+      navigation.navigate("Login")
     }
-  };
+  }
 
-  const screenWidth = Dimensions.get("window").width;
-  const numColumns = 2;
-  const formattedDate = client?.createdAt
-    ? new Date(client.createdAt).toDateString()
-    : "Date inconnue";
+  const screenWidth = Dimensions.get("window").width
+  const numColumns = 2
+  const formattedDate = client?.createdAt ? new Date(client.createdAt).toDateString() : "Date inconnue"
 
   if (!client) {
-    return <Text>Loading...</Text>;
+    return <Text>Loading...</Text>
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={handleLogout}
-          >
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Icon name="sign-out" size={24} color="#4169E1" />
           </TouchableOpacity>
           <Image
@@ -161,12 +141,10 @@ export default function Profile({ navigation }) {
         </View>
 
         <View style={styles.actionsSection}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("EditProfile")}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("EditProfile")}>
             <Icon name="edit" size={35} color="#4169E1" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowAddPostModal(true)}>
+          <TouchableOpacity onPress={() => setShowAddPostDialog(true)}>
             <AddPostIcon name="post-add" size={35} color="#4169E1" />
           </TouchableOpacity>
           <TouchableOpacity>
@@ -183,26 +161,27 @@ export default function Profile({ navigation }) {
           <Text style={styles.sectionTitle}>Followers</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {friends.map((friend) => (
-              <FriendItem
-                key={friend._id}
-                friend={friend}
-                onPress={() => handleNavigate(friend)}
-              />
+              <FriendItem key={friend._id} friend={friend} onPress={() => handleNavigate(friend)} />
             ))}
           </ScrollView>
         </View>
 
         <View style={styles.postsSection}>
           <Text style={styles.sectionTitle}>Posts</Text>
-          <MasonryList
-            posts={posts}
-            numColumns={numColumns}
-            containerWidth={screenWidth - 40}
-          />
+          <MasonryList posts={posts} numColumns={numColumns} containerWidth={screenWidth - 40} />
         </View>
       </ScrollView>
+      <AddPostDialog
+        visible={showAddPostDialog}
+        onClose={() => setShowAddPostDialog(false)}
+        onAddPost={(postData) => {
+          // Handle adding the post here
+          console.log("New post data:", postData)
+          setShowAddPostDialog(false)
+        }}
+      />
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({

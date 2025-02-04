@@ -18,6 +18,7 @@ const InteractionsNavigator = () => {
           headerShown: false,
         })}
       />
+      
       <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
