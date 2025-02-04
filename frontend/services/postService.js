@@ -19,3 +19,8 @@ export const handleLikeApi = async ({postId , userId }) => {
 export const handlesaveApi = async ({postId , userId }) => {
   const response = await axios.post(`${API_URL}/save`, { postId, userId })
 }
+
+export const getpostesliked = async (userId) => { 
+  const response = await axios.get(`${API_URL}/likes/${userId}`);
+  return response.data;
+};

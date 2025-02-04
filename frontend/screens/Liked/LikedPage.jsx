@@ -14,18 +14,20 @@ import {
 // import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import * as api from "../../services/userService";
-import Post from './components/post'
+import Post from '../Home/components/post'
 import * as postApi from '../../services/postService';
+import { useSocket } from "@/app/SocketContext";
 
 const { width, height } = Dimensions.get("window");
 
-export default function Home({ navigation }) {
+export default function LikedPage({ navigation }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [user, setUser] = useState(null);
   const [users , setUsers] = useState([])
   const [error, setError] = useState(null);
+
+  const { user } = useSocket();
 
   const handleNavigation = (item, page) => {
     const userId = user?._id;
@@ -49,7 +51,7 @@ export default function Home({ navigation }) {
 
   const fetchPosts = useCallback(async () => {
     try {
-      const postsData = await postApi.getPosts();
+      const postsData = await postApi.getpostesliked(user._id);
       setPosts(postsData);
     } catch (err) {
       console.error('Failed to fetch posts:', err);
@@ -75,19 +77,9 @@ export default function Home({ navigation }) {
     }
   };
 
-  const getUser = async () => {
-    try {
-      const getUserByToken = await api.getUserByToken();
-      setUser(getUserByToken);
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    }
-  };
-
   useEffect(() => {
     isConnexionExpired();
     fetchPosts();
-    getUser();
   }, []);
 
   const onRefresh = () => {
@@ -124,82 +116,15 @@ export default function Home({ navigation }) {
   
   const transformedPosts = transformPosts();
 
-
-  const TopBar = () => {
-    return (
-      <View style={styles.topBar}>
-        <View style={styles.iconsContainer}>
-          <TouchableOpacity 
-             onPress={() => {
-              navigation.navigate("Liked",
-                 {userId: user._id,}
-              );
-             }}
-          >
-            <Icon name="heart" size={24} color="#8e44ad" /> {/* Cœur vide */}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate("Notifications",
-                {userId: user._id,}
-              );
-            }}
-          >
-            <Icon name="bell" size={24} color="#8e44ad" />{" "}
-            {/* Cloche de notification */}
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  const UsersContain = () => {
-    return (
-      <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false} 
-      style={usersStyles.scrollContainer}
-    >
-      <View style={usersStyles.userContainer}>
-        {users?.map((user, index) => (
-          <TouchableOpacity
-            onPress={() => handleNavigation(user, "VisitedProfile")}
-          >
-          <View key={user.id || index} style={usersStyles.userItem}>
-            <View style={usersStyles.avatarContainer}>
-              <View style={usersStyles.avatarInnerContainer}>
-              <Image
-                  source={
-                    user.avatar 
-                      ? { uri: user.avatar } 
-                      : require('../../assets/images/profileImage.jpg')
-                  }
-                  style={usersStyles.avatar}
-                  resizeMode="cover"
-                />
-              </View>
-            </View>
-            <Text style={usersStyles.username}>
-              {user.username.length > 11 ? `${user.username.substring(0, 11)}..` : user.username}
-            </Text>
-          </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
-    );
-  };
-
-
+  
   return (
     <View style={styles.container}>
-      <TopBar />
       <FlatList
-        data={[{ type: "users" }, ...transformedPosts]} // Ajout d'un élément spécial pour UsersContain
+        data={transformedPosts}
         renderItem={({ item }) =>
-          item.type === "users" ? <UsersContain /> : <Post post={item} />
+          <Post post={item} />
         }
-        keyExtractor={(item, index) => item.id || `users-${index}`} // Clé unique
+        keyExtractor={(item, index) => item.id || `users-${index}`} 
       />
     </View>
   );

@@ -6,6 +6,7 @@ import VisitedProfileScreen from "../../screens/VisitedProfile";
 import ChatRoom from "@/screens/Chat/ChatRoom";
 import CallPage from "../../screens/Call/CallPage";
 import PostDetails from "../../screens/PostDetailes/CommentsScreen"
+import Liked from "../../screens/Liked/LikedPage"
 
 const Stack = createStackNavigator();
 
@@ -51,6 +52,13 @@ const InteractionsNavigator = () => {
       <Stack.Screen
         name="CommentsScreen"
         component={PostDetails}
+        options={({ route }) => ({
+          title: `  return `,
+        })}
+      />
+      <Stack.Screen
+        name="Liked"
+        component={Liked}
         options={({ route }) => ({
           title: `  return `,
         })}
