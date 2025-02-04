@@ -5,6 +5,7 @@ import * as api from "../../services/userService"
 import Icon from "react-native-vector-icons/FontAwesome"
 import AddPostIcon from "react-native-vector-icons/MaterialIcons"
 import DeleteAccountIcon from "react-native-vector-icons/MaterialCommunityIcons"
+import Heart from 'react-native-vector-icons/MaterialCommunityIcons';
 import AddPostDialog from "./AddPostDialog"
 
 const posts = [
@@ -164,6 +165,18 @@ export default function Profile({ navigation }) {
               <FriendItem key={friend._id} friend={friend} onPress={() => handleNavigate(friend)} />
             ))}
           </ScrollView>
+        </View>
+
+        <View style={styles.actionsSection}>
+          <TouchableOpacity onPress={() => navigation.navigate("EditProfile")}>
+             <Icon name="comment" size={35} color="#4169E1" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowAddPostDialog(true)}>
+            <Heart name="heart" size={35} color="#4169E1"/>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Icon name="bookmark" size={35} color="#4169E1" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.postsSection}>

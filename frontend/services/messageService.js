@@ -1,5 +1,5 @@
 const axios = require("axios").default;
-const API_URL = 'http://localhost:8080/api/messages';
+const API_URL = 'https://momeetbackend.cleverapps.io/api/messages';
 
 export const getMessages = async ({ sender, receiver }) => {
   try {

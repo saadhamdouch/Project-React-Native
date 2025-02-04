@@ -2,8 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import io from "socket.io-client";
 import * as api from "../services/userService";
 
-//  const SOCKET_URL = "https://confastserverchat.onrender.com";
-const SOCKET_URL = "http://localhost:8082";
+ const SOCKET_URL = "https://confastserverchat.onrender.com";
+// const SOCKET_URL = "http://localhost:8080";
 
 // Création du contexte
 const SocketContext = createContext(null);
@@ -16,13 +16,10 @@ export const SocketProvider = ({ children }) => {
   const [userCalling, setUserCalling] = useState(null);
   const [socket, setSocket] = useState(null);
 
-  console.log("ana flcontext");
-
   // Vérifie si le token est expiré
   const isConnexionExpired = async () => {
     const isExpired = await api.checkTokenExpiration();
     if (isExpired) {
-      console.log("Token expired");
       navigation.navigate("Login");
     }
   };
@@ -65,12 +62,10 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on("new message", (data) => {
-        console.log("new message : ", data);
         setNewMessage(data);
       });
 
       newSocket.on("Call", (UserCallData) => {
-        console.log("hzalalala:", UserCallData);
         setUserCalling(UserCallData.UserCallData);
       });
 
