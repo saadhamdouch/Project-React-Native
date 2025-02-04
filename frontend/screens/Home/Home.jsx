@@ -14,7 +14,6 @@ import {
 // import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import * as api from "../../services/userService";
-import axios from 'axios';
 import Post from './components/post'
 import * as postApi from '../../services/postService';
 
