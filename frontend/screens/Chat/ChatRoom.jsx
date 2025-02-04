@@ -10,12 +10,12 @@ import {
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import { useSocket } from "../../app/SocketContext";
+import * as api from '../../services/messageService'
 
 const ChatRoom = () => {
   const { socket, NewMessage, user } = useSocket(); // Assurez-vous que `socket` est extrait correctement
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  console.log("user", user);
   const userId = user._id;
   const flatListRef = useRef(null);
 
@@ -24,16 +24,41 @@ const ChatRoom = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
+    const fetchMessages = async () => {
+      if (userId && friendId) {
+        try {
+          const data = await api.getMessages({ sender: userId, receiver: friendId });
+          console.log('Messages de la base de données :', data?.messages);
+          const formattedMessages = data?.messages.map(message => ({
+            id: message.receiver,
+            content: message.content,
+            sender: message.sender,
+            timestamp: message.createdAt,
+            isRead: false,
+          }));
+  
+          setMessages(formattedMessages);
+        } catch (error) {
+          console.error("Erreur lors de la récupération des messages :", error);
+        }
+      }
+    };
+  
+    fetchMessages();
+  }, [userId, friendId]);
+  
+
+  useEffect(() => {
     if (socket && NewMessage) {
       console.log("roomMessages", NewMessage);
   
       // Vérifier si le message existe déjà dans la liste
-      if (!messages.some(msg => msg.timestamp === NewMessage.timestamp)) {
+      if ( Object.keys(NewMessage).length > 0 ) {
         const localmessage = {
           id: NewMessage.id,
-          content: NewMessage.text,
+          content: NewMessage.content,
           sender: NewMessage.sender,
-          timestamp: NewMessage.timestamp,
+          timestamp: NewMessage.createdAt,
           isRead: false,
         };
   

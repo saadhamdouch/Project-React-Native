@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSocket } from "../../app/SocketContext";
 import { array } from "yup";
 
+
 const Friends = ({ navigation }) => {
   const { socket, onLineUsers, NewMessage, user } = useSocket(); // Assurez-vous que `socket` est extrait correctement
   console.log("user dans FriendScreen :", user);
@@ -81,7 +82,8 @@ const Friends = ({ navigation }) => {
               <Text style={{ fontWeight: "600" }}>{item.username}</Text>
             </View>
             <View style={styles.name}>
-              <Text style={{ fontWeight: "600" }}>{item.email}</Text>
+              {console.log('NewMessage dlfrand: ', NewMessage)}
+              <Text style={{ fontWeight: "600" }}>{ NewMessage.sender == item._id ? NewMessage.content : 'pas de messages pendant la connection '}</Text>
             </View>
             <View style={styles.date}>
               <Text style={{ color: "green", fontWeight: "500" }}>
