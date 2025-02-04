@@ -14,85 +14,21 @@ import {
 // import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import * as api from "../../services/userService";
-import * as postApi from "../../services/postService";
 import axios from 'axios';
 import Post from './components/post'
+import * as postApi from '../../services/postService';
 
 const { width, height } = Dimensions.get("window");
 
-const getPosts = async () => {
-  try {
-    const response = await axios.get('https://momeetbackend.cleverapps.io/api/posts');
-    return response.data;
-  } catch (error) {
-    console.error('Failed to fetch posts:', error);
-    return [];
-  }
-};
-
 export default function Home({ navigation }) {
-
-  const TopBar = () => {
-    return (
-      <View style={styles.topBar}>
-        <View style={styles.iconsContainer}>
-          <TouchableOpacity>
-            <Icon name="heart" size={24} color="#8e44ad" /> {/* Cœur vide */}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate("Notifications",
-                {userId: user._id,}
-              );
-            }}
-          >
-            <Icon name="bell" size={24} color="#8e44ad" />{" "}
-            {/* Cloche de notification */}
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  const UsersContain = () => {
-    return (
-      <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false} 
-      style={usersStyles.scrollContainer}
-    >
-      <View style={usersStyles.userContainer}>
-        {users?.map((user, index) => (
-          <View key={user.id || index} style={usersStyles.userItem}>
-            <View style={usersStyles.avatarContainer}>
-              <View style={usersStyles.avatarInnerContainer}>
-              <Image
-                  source={
-                    user.avatar 
-                      ? { uri: user.avatar } 
-                      : require('../../assets/images/profileImage.jpg')
-                  }
-                  style={usersStyles.avatar}
-                  resizeMode="cover"
-                />
-              </View>
-            </View>
-            <Text style={usersStyles.username}>
-              {user.username.length > 11 ? `${user.username.substring(0, 11)}..` : user.username}
-            </Text>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
-    );
-  };
-
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState(null);
   const [users , setUsers] = useState([])
   const [error, setError] = useState(null);
+
+  console.log("posts", posts);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -106,7 +42,7 @@ export default function Home({ navigation }) {
 
   const fetchPosts = useCallback(async () => {
     try {
-      const postsData = await getPosts();
+      const postsData = await postApi.getPosts();
       setPosts(postsData);
     } catch (err) {
       console.error('Failed to fetch posts:', err);
@@ -181,77 +117,76 @@ export default function Home({ navigation }) {
   
   const transformedPosts = transformPosts();
 
-  // const renderItem = ({ item }) => (
-  //   <View style={styles.postContainer}>
-  //     <View style={styles.postHeader}>
-  //       <Image source={{ uri: item.author?.avatar }} style={styles.avatar} />
-  //       <Text style={styles.authorName}>{item.author.username}</Text>
-  //     </View>
-  //     <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-  //     <Text style={styles.postTitle}>{item.title}</Text>
-  //     <Text style={styles.postDescription}>{item.description}</Text>
-  //   </View>
-  // );
 
-  // const renderLiveItem = ({ item }) => (
-  //   <TouchableOpacity style={styles.liveItem}>
-  //     <Image source={{ uri: item.avatar }} style={styles.liveAvatar} />
-  //     <Text style={styles.liveName}>{item.name}</Text>
-  //     <Text style={styles.liveUser}>{item.user}</Text>
-  //   </TouchableOpacity>
-  // );
+  const TopBar = () => {
+    return (
+      <View style={styles.topBar}>
+        <View style={styles.iconsContainer}>
+          <TouchableOpacity>
+            <Icon name="heart" size={24} color="#8e44ad" /> {/* Cœur vide */}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("Notifications",
+                {userId: user._id,}
+              );
+            }}
+          >
+            <Icon name="bell" size={24} color="#8e44ad" />{" "}
+            {/* Cloche de notification */}
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
-  const dummyData = [
-    {
-      id: "1",
-      user: {
-        name: "johndoe",
-        avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      },
-      image: "https://picsum.photos/id/1/500/500",
-      likes: 1234,
-      caption: "Beautiful sunset!",
-      comments: 42,
-    },
-    {
-      id: "2",
-      user: {
-        name: "janedoe",
-        avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-      },
-      image: "https://picsum.photos/id/2/500/500",
-      likes: 5678,
-      caption: "Delicious food!",
-      comments: 98,
-    },
-    // Add more dummy posts here
-  ]
+  const UsersContain = () => {
+    return (
+      <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false} 
+      style={usersStyles.scrollContainer}
+    >
+      <View style={usersStyles.userContainer}>
+        {users?.map((user, index) => (
+          <View key={user.id || index} style={usersStyles.userItem}>
+            <View style={usersStyles.avatarContainer}>
+              <View style={usersStyles.avatarInnerContainer}>
+              <Image
+                  source={
+                    user.avatar 
+                      ? { uri: user.avatar } 
+                      : require('../../assets/images/profileImage.jpg')
+                  }
+                  style={usersStyles.avatar}
+                  resizeMode="cover"
+                />
+              </View>
+            </View>
+            <Text style={usersStyles.username}>
+              {user.username.length > 11 ? `${user.username.substring(0, 11)}..` : user.username}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+    );
+  };
+
 
   return (
     <View style={styles.container}>
       <TopBar />
-      <InstagramFeed dummyData={dummyData} />
-      {/* post={post} user={user} */}
-      {/* {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <FlatList
-          data={posts}
-          renderItem={renderItem}
-          keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
-      )} */}
+      <FlatList
+        data={[{ type: "users" }, ...transformedPosts]} // Ajout d'un élément spécial pour UsersContain
+        renderItem={({ item }) =>
+          item.type === "users" ? <UsersContain /> : <Post post={item} />
+        }
+        keyExtractor={(item, index) => item.id || `users-${index}`} // Clé unique
+      />
     </View>
   );
 }
-
-const InstagramFeed = ({dummyData}) => (
-  <FlatList data={dummyData} renderItem={({ item }) => <Post post={item} />} keyExtractor={(item) => item.id} />
-)
 
 
 const styles = StyleSheet.create({

@@ -137,7 +137,7 @@ const ChatRoom = () => {
         data={messages}
         ref={flatListRef}
         renderItem={({ item }) => <MessageItem item={item} />}
-        keyExtractor={(item) => item._id || item.id || Math.random().toString(36).substring(7)}
+        keyExtractor={(_, index) => index.toString()}
         showsVerticalScrollIndicator={false}
       />
       <View style={styles.inputContainer}>

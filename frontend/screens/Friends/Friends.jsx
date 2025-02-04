@@ -10,9 +10,10 @@ import {
 import * as api from "../../services/userService";
 import { Ionicons } from "@expo/vector-icons";
 import { useSocket } from "../../app/SocketContext";
+import { array } from "yup";
 
 const Friends = ({ navigation }) => {
-  const { socket, NewMessage, user } = useSocket(); // Assurez-vous que `socket` est extrait correctement
+  const { socket, onLineUsers, NewMessage, user } = useSocket(); // Assurez-vous que `socket` est extrait correctement
   console.log("user dans FriendScreen :", user);
   const [Friends, setFriends] = useState([]);
   const userId = user._id;
@@ -63,11 +64,14 @@ const Friends = ({ navigation }) => {
       <View style={styles.card}>
         <TouchableOpacity
           onPress={() => handleNavigation(item, "VisitedProfile")}
-          style={{ width: "20%" }}
+          style={{ width: "20%", position: "relative" }} // Ajout de position: relative
         >
-          <Image source={{ uri: item.avatar }} style={styles.avatar} />
+          {console.log("onLineUsers:", onLineUsers, 'user:', item)}
+          <Image source={{ uri: item.avatar }} style={OnligneStyles.avatar} />
+          { Array.isArray(onLineUsers) && onLineUsers.includes(item._id) && (
+            <View style={OnligneStyles.onlineIndicator} />
+          )}
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => handleNavigation(item, "chat")}
           style={{ width: "80%" }}
@@ -173,5 +177,24 @@ const styles = StyleSheet.create({
   },
   date: {
     alignItems: "flex-start",
+  },
+});
+
+const OnligneStyles = StyleSheet.create({
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 6,  // Ajuste la position verticale
+    right: 15,   // Ajuste la position horizontale
+    width: 14,  // Taille légèrement augmentée
+    height: 14,
+    backgroundColor: "lightgreen", // Couleur de fond verte
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: "white", // Bordure blanche pour éviter le chevauchement
   },
 });

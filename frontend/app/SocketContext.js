@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import io from "socket.io-client";
 import * as api from "../services/userService";
 
- const SOCKET_URL = "https://confastservice.onrender.com";
+ const SOCKET_URL = "https://confastserverchat.onrender.com";
 // const SOCKET_URL = "http://localhost:8080";
 
 // Création du contexte
@@ -49,7 +49,6 @@ export const SocketProvider = ({ children }) => {
       // Crée une nouvelle instance de socket uniquement si elle n'existe pas déjà
       const newSocket = io(SOCKET_URL, {
         auth: { user },
-        path: "/chat", // Chemin personnalisé si nécessaire
         transports: ["websocket"], // Utiliser uniquement WebSocket
       });
 
