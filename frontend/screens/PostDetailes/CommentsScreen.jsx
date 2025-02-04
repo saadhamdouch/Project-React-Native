@@ -1,175 +1,182 @@
-import { useState, useRef } from "react"
-import {
-  View,
-  Text,
-  Image,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-  Dimensions,
-} from "react-native"
-import { Feather } from "@expo/vector-icons"
-import { useRoute } from "@react-navigation/native"
+import React from "react"
+import { useState, useEffect } from "react"
+import { View, Text, Image, TouchableOpacity, TextInput, FlatList, StyleSheet, Dimensions } from "react-native"
+import { Heart, MessageCircle, Bookmark, X, Share2 } from "lucide-react-native"
+import Comment from "./Comment"
+import axios from "axios"
+import Video from "react-native-video" // Import Video component
+import { useSocket } from "@/app/SocketContext"
+import { useRoute } from "@react-navigation/native";
 
-const SCREEN_WIDTH = Dimensions.get("window").width
+const { width, height } = Dimensions.get("window")
 
-const SAMPLE_COMMENTS = [
-  { id: "1", user: "johndoe", text: "Great photo! 😍", likes: 5, time: "2h", replies: [] },
-  {
-    id: "2",
-    user: "janedoe",
-    text: "Amazing view!",
-    likes: 3,
-    time: "1h",
-    replies: [{ id: "2.1", user: "mike123", text: "Totally agree!", likes: 1, time: "30m" }],
-  },
-  { id: "3", user: "mike123", text: "Where is this?", likes: 1, time: "30m", replies: [] },
-]
+const insertComment = async (commentData) => {
+  const response = await axios.post("https://momeetbackend.cleverapps.io/api/posts/comment", commentData)
+  return response.data
+}
 
-export default function InstagramCommentPage() {
-  const [comments, setComments] = useState(SAMPLE_COMMENTS)
+const insertReply = async (commentData) => {
+  const response = await axios.post("https://momeetbackend.cleverapps.io/api/posts/comment/reply", commentData)
+  return response.data
+}
+
+const PostDetails = () => {
+  const [isLiked, setIsLiked] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState("")
-  const [replyingTo, setReplyingTo] = useState(null)
-  const flatListRef = useRef(null)
+  const [replyingTo, setReplyingTo] = useState({
+    id: null,
+    username: null,
+  })
+  const { user } = useSocket()
+  const route = useRoute();
 
-  const route = useRoute()
-  const { post } = route.params
+  const { data } = route.params;
 
-  const addComment = () => {
-    if (newComment.trim() !== "") {
-      if (replyingTo) {
-        const updatedComments = comments.map((comment) => {
-          if (comment.id === replyingTo) {
+  useEffect(() => {
+    console.log(data)
+    setComments(data?.comments)
+  }, [data])
+
+  const handleAddComment = async () => {
+    if (newComment.trim() === "") return
+
+    const newCommentObj = {
+      id: Date.now(),
+      userId: user._id,
+      text: newComment,
+      likes: 0,
+      timestamp: "Just now",
+      replies: [],
+    }
+
+    const commentData = {
+      postId: data.postId,
+      comment: {
+        userId: user._id,
+        text: newComment,
+        likes: 0,
+      },
+    }
+
+    if (replyingTo.id !== null) {
+      const reply = {
+        postId: commentData.postId,
+        commentId: replyingTo.id,
+        reply: commentData.comment,
+      }
+      await insertReply(reply)
+      setComments((prevComments) =>
+        prevComments.map((comment) => {
+          if (comment._id === replyingTo.id) {
+            return { ...comment, replies: [newCommentObj, ...comment.replies] }
+          }
+          if (comment.replies) {
             return {
               ...comment,
-              replies: [
-                ...comment.replies,
-                {
-                  id: `${comment.id}.${comment.replies.length + 1}`,
-                  user: "currentuser",
-                  text: newComment.trim(),
-                  likes: 0,
-                  time: "Just now",
-                },
-              ],
+              replies: comment.replies.map((reply) =>
+                reply.id === replyingTo.id ? { ...reply, replies: [newCommentObj, ...reply.replies] } : reply,
+              ),
             }
           }
           return comment
-        })
-        setComments(updatedComments)
-        setReplyingTo(null)
-      } else {
-        const newCommentObj = {
-          id: String(comments.length + 1),
-          user: "currentuser",
-          text: newComment.trim(),
-          likes: 0,
-          time: "Just now",
-          replies: [],
-        }
-        setComments([newCommentObj, ...comments])
-      }
-      setNewComment("")
-      flatListRef.current?.scrollToOffset({ animated: true, offset: 0 })
+        }),
+      )
+      setReplyingTo({ id: null, username: null })
+    } else {
+      await insertComment(commentData)
+      setComments((prevComments) => [newCommentObj, ...prevComments])
     }
+
+    setNewComment("")
   }
 
-  const renderReply = ({ item }) => (
-    <View style={styles.replyContainer}>
-      <Image source={{ uri: `https://i.pravatar.cc/150?u=${item.user}` }} style={styles.replyAvatar} />
-      <View style={styles.replyContent}>
-        <Text>
-          <Text style={styles.commentUser}>{item.user}</Text> <Text style={styles.commentText}>{item.text}</Text>
-        </Text>
-        <View style={styles.commentActions}>
-          <Text style={styles.commentTime}>{item.time}</Text>
-          <Text style={styles.commentLikes}>{item.likes} likes</Text>
-          <TouchableOpacity>
-            <Text style={styles.replyButton}>Reply</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <TouchableOpacity style={styles.likeButton}>
-        <Feather name="heart" size={12} color="#8E8E8E" />
-      </TouchableOpacity>
-    </View>
-  )
+  const handleReply = (parentId, replyToUsername) => {
+    setReplyingTo({ id: parentId, username: replyToUsername })
+    setNewComment(`@${replyToUsername} `)
+  }
 
-  const renderComment = ({ item }) => (
-    <View>
-      <View style={styles.commentContainer}>
-        <Image source={{ uri: `https://i.pravatar.cc/150?u=${item.user}` }} style={styles.avatar} />
-        <View style={styles.commentContent}>
-          <Text>
-            <Text style={styles.commentUser}>{item.user}</Text> <Text style={styles.commentText}>{item.text}</Text>
-          </Text>
-          <View style={styles.commentActions}>
-            <Text style={styles.commentTime}>{item.time}</Text>
-            <Text style={styles.commentLikes}>{item.likes} likes</Text>
-            <TouchableOpacity onPress={() => setReplyingTo(item.id)}>
-              <Text style={styles.replyButton}>Reply</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.likeButton}>
-          <Feather name="heart" size={12} color="#8E8E8E" />
-        </TouchableOpacity>
-      </View>
-      {item.replies.map((reply) => renderReply({ item: reply }))}
-    </View>
-  )
+  const handleLike = () => {
+    setIsLiked(!isLiked)
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity>
-          <Feather name="arrow-left" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Comments</Text>
-        <TouchableOpacity>
-          <Feather name="send" size={24} color="black" />
-        </TouchableOpacity>
+        <View style={styles.userInfo}>
+          <Image source={{ uri: data.userAvatar }} style={styles.avatar} />
+          <View>
+            <Text style={styles.username}>{data.username}</Text>
+            {data.location && <Text style={styles.location}>{data.location}</Text>}
+          </View>
+        </View>
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
-      >
-        <FlatList
-          ref={flatListRef}
-          ListHeaderComponent={() => (
-            <Image source={{ uri: post?.image }} style={styles.postImage} resizeMode="contain" />
-          )}
-          data={comments}
-          renderItem={renderComment}
-          keyExtractor={(item) => item.id}
-          style={styles.commentList}
-        />
+      <View style={styles.mediaContainer}>
+        {data.image ? (
+          <Image source={{ uri: data.image }} style={styles.media} resizeMode="contain" />
+        ) : data.video ? (
+          <Video source={{ uri: data.video }} style={styles.media} resizeMode="contain" useNativeControls isLooping />
+        ) : (
+          <View style={styles.noMedia}>
+            <Text style={styles.noMediaText}>No media available</Text>
+          </View>
+        )}
+      </View>
 
-        <View style={styles.commentInputContainer}>
-          <Image source={{ uri: "https://i.pravatar.cc/150?u=currentuser" }} style={styles.currentUserAvatar} />
-          <TextInput
-            style={styles.commentInput}
-            placeholder={replyingTo ? "Reply to comment..." : "Add a comment..."}
-            value={newComment}
-            onChangeText={setNewComment}
-          />
-          <TouchableOpacity onPress={addComment}>
-            <Text style={[styles.postButton, newComment.trim() ? styles.postButtonActive : {}]}>Post</Text>
+      <FlatList
+        data={comments}
+        renderItem={({ item }) => <Comment comment={item} onReply={handleReply} />}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={() => (
+          <View style={styles.captionContainer}>
+            <Image source={{ uri: data.user.avatar }} style={styles.smallAvatar} />
+            <View>
+              <Text>
+                <Text style={styles.username}>{data.user.name}</Text>
+              </Text>
+              <Text style={styles.timestamp}>{data.caption}</Text>
+            </View>
+          </View>
+        )}
+      />
+
+      {/* <View style={styles.actionsContainer}>
+        <View style={styles.leftActions}>
+          <TouchableOpacity onPress={handleLike}>
+            <Heart size={24} color={isLiked ? "#EF4444" : "#1F2937"} fill={isLiked ? "#EF4444" : "none"} />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <MessageCircle size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Share2 size={24} color="#1F2937" />
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <TouchableOpacity onPress={() => setIsSaved(!isSaved)}>
+          <Bookmark size={24} color="#1F2937" fill={isSaved ? "#1F2937" : "none"} />
+        </TouchableOpacity>
+      </View> */}
+
+      <View style={styles.commentInputContainer}>
+        <TextInput
+          style={styles.commentInput}
+          value={newComment}
+          onChangeText={setNewComment}
+          placeholder={replyingTo.id ? `Reply to ${replyingTo.username}...` : "Add a comment..."}
+        />
+        <TouchableOpacity onPress={handleAddComment}>
+          <Text style={styles.postButton}>Post</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 0,
     flex: 1,
     backgroundColor: "white",
   },
@@ -177,112 +184,93 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#DBDBDB",
+    padding: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  postImage: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
-    backgroundColor: "black",
-  },
-  commentList: {
-    flex: 1,
-  },
-  commentContainer: {
+  userInfo: {
     flexDirection: "row",
-    padding: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#EFEFEF",
+    alignItems: "center",
   },
   avatar: {
+    width: 40,
+    height: 0,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  username: {
+    fontWeight: "bold",
+  },
+  location: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+  mediaContainer: {
+    width: width,
+    height: '350px',
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  media: {
+    width: "100%",
+    height: "100%",
+  },
+  noMedia: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noMediaText: {
+    color: "#9CA3AF",
+  },
+  captionContainer: {
+    flexDirection: "row",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  smallAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
     marginRight: 12,
   },
-  commentContent: {
-    flex: 1,
-  },
-  commentUser: {
-    fontWeight: "600",
-    marginRight: 5,
-  },
-  commentText: {
-    color: "#262626",
-  },
-  commentActions: {
-    flexDirection: "row",
+  timestamp: {
+    fontSize: 12,
+    color: "#6B7280",
     marginTop: 4,
-    alignItems: "center",
   },
-  commentTime: {
-    color: "#8E8E8E",
-    fontSize: 12,
-    marginRight: 8,
-  },
-  commentLikes: {
-    color: "#8E8E8E",
-    fontSize: 12,
-    marginRight: 8,
-  },
-  replyButton: {
-    color: "#8E8E8E",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  likeButton: {
-    padding: 4,
-  },
-  replyContainer: {
+  actionsContainer: {
     flexDirection: "row",
-    padding: 12,
-    paddingLeft: 44,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#EFEFEF",
+    justifyContent: "space-between",
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
   },
-  replyAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 12,
-  },
-  replyContent: {
-    flex: 1,
+  leftActions: {
+    flexDirection: "row",
+    gap: 16,
   },
   commentInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderTopWidth: 0.5,
-    borderTopColor: "#DBDBDB",
-    backgroundColor: "white",
-  },
-  currentUserAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 12,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
   },
   commentInput: {
     flex: 1,
-    fontSize: 14,
-    color: "#262626",
+    backgroundColor: "#F3F4F6",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 12,
   },
   postButton: {
-    color: "#0095F6",
-    fontWeight: "600",
-    opacity: 0.5,
-  },
-  postButtonActive: {
-    opacity: 1,
+    color: "#3B82F6",
+    fontWeight: "bold",
   },
 })
+
+export default PostDetails
 

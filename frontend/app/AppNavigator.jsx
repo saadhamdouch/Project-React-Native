@@ -3,7 +3,7 @@ import Hero from "../screens/Hero/Hero";
 import Login from "../components/auth/Login";
 import SignUp from "../components/auth/SignUp";
 import TabNavigator from "./(tabs)/TabNavigator";
-import CommentsScreen from "../screens/PostDetailes/CommentsScreen"
+import PostDetails from "../screens/PostDetailes/CommentsScreen"
 import { createStackNavigator } from "@react-navigation/stack";
 import "react-native-gesture-handler";
 
@@ -29,11 +29,6 @@ const AppNavigator = () => (
     <Stack.Screen
       name="Tabs"
       component={TabNavigator}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="CommentsScreen"
-      component={CommentsScreen}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>

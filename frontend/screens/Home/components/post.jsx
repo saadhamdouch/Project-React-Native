@@ -16,7 +16,7 @@ const Post = ({ post }) => {
 
   const handleNavigation = (post, page) => {
       navigation.navigate(page, {
-        post
+        data: post,
       });
   }
 
