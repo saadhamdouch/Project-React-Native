@@ -27,7 +27,15 @@ export default function Home({ navigation }) {
   const [users , setUsers] = useState([])
   const [error, setError] = useState(null);
 
-  console.log("posts", posts);
+  const handleNavigation = (item, page) => {
+    const userId = user?._id;
+    if (page === "VisitedProfile") {
+      navigation.navigate("VisitedProfile", {
+        friend: item,
+        clientId: userId,
+      });
+    }
+  };
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -148,6 +156,9 @@ export default function Home({ navigation }) {
     >
       <View style={usersStyles.userContainer}>
         {users?.map((user, index) => (
+          <TouchableOpacity
+            onPress={() => handleNavigation(user, "VisitedProfile")}
+          >
           <View key={user.id || index} style={usersStyles.userItem}>
             <View style={usersStyles.avatarContainer}>
               <View style={usersStyles.avatarInnerContainer}>
@@ -166,6 +177,7 @@ export default function Home({ navigation }) {
               {user.username.length > 11 ? `${user.username.substring(0, 11)}..` : user.username}
             </Text>
           </View>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
